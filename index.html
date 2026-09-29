@@ -188,90 +188,6 @@
 
 
         /* =================================================
-           LANGUAGE SWITCH
-        ================================================= */
-
-        .language-switch {
-
-            direction: ltr;
-
-            display: flex;
-
-            flex-direction: row;
-
-            align-items: center;
-
-            flex-shrink: 0;
-
-            padding: 5px;
-
-            border:
-                1px solid var(--control-border);
-
-            background:
-                var(--control-bg);
-
-            border-radius: 40px;
-
-            backdrop-filter: blur(12px);
-
-            box-shadow:
-                0 8px 30px var(--shadow);
-        }
-
-
-        .language-button {
-
-            border: none;
-
-            background: transparent;
-
-            color: var(--text);
-
-            padding: 9px 17px;
-
-            border-radius: 25px;
-
-            font-family: inherit;
-
-            font-size: 15px;
-
-            cursor: pointer;
-
-            white-space: nowrap;
-
-            transition:
-                background 0.3s ease,
-                color 0.3s ease;
-        }
-
-
-        .language-button:hover {
-
-            background:
-                rgba(255, 255, 255, 0.20);
-        }
-
-
-        .language-button.active {
-
-            background:
-                rgba(255, 255, 255, 0.82);
-
-            box-shadow:
-                0 3px 12px var(--shadow);
-        }
-
-
-        body.dark
-        .language-button.active {
-
-            background:
-                rgba(255, 255, 255, 0.16);
-        }
-
-
-        /* =================================================
            DAY / NIGHT SWITCH
         ================================================= */
 
@@ -393,30 +309,6 @@
 
             transform:
                 scale(1.02);
-        }
-
-
-        /* =================================================
-           LANGUAGE CONTENT
-        ================================================= */
-
-        [data-lang="en"] {
-
-            display: none;
-        }
-
-
-        body.english
-        [data-lang="fa"] {
-
-            display: none;
-        }
-
-
-        body.english
-        [data-lang="en"] {
-
-            display: block;
         }
 
 
@@ -592,15 +484,6 @@
             }
 
 
-            .language-button {
-
-                font-size: 13px;
-
-                padding:
-                    8px 12px;
-            }
-
-
             .theme-switch {
 
                 width: 78px;
@@ -726,38 +609,7 @@
          TOP CONTROLS
     ================================================= -->
 
-    <header class="top-bar">
-
-
-        <!-- LANGUAGE -->
-
-        <div class="language-switch">
-
-            <button
-                id="faButton"
-                class="language-button active"
-                type="button"
-                onclick="setLanguage('fa')">
-
-                فارسی 🇮🇷
-
-            </button>
-
-
-            <button
-                id="enButton"
-                class="language-button"
-                type="button"
-                onclick="setLanguage('en')">
-
-                English 🇬🇧
-
-            </button>
-
-        </div>
-
-
-        <!-- DAY / NIGHT -->
+    <header class="top-bar"><!-- DAY / NIGHT -->
 
         <button
             class="theme-switch"
@@ -793,15 +645,7 @@
             alt="Shiraali Logo"
             class="logo">
 
-
-
-        <!-- ============================================
-             PERSIAN
-        ============================================= -->
-
-        <div data-lang="fa">
-
-            <h1>
+        <h1>
                 سایت بزودی راه‌اندازی می‌شود
             </h1>
 
@@ -819,45 +663,7 @@
                 در خدمت شما خواهیم بود.
 
             </p>
-
-        </div>
-
-
-
-        <!-- ============================================
-             ENGLISH
-        ============================================= -->
-
-        <div data-lang="en">
-
-            <h1 dir="ltr">
-
-                The website will be launching soon
-
-            </h1>
-
-
-            <div class="english-title">
-
-                Shiraali.ir
-
-            </div>
-
-
-            <p
-                class="description"
-                dir="ltr">
-
-                We will be here soon with better content
-                and more features.
-
-            </p>
-
-        </div>
-
-
-
-        <!-- DIVIDER -->
+<!-- DIVIDER -->
 
         <div class="divider">
 
@@ -925,101 +731,11 @@ function updateThemeIcon() {
 
 
 /* =====================================================
-   LANGUAGE
-===================================================== */
-
-function setLanguage(language) {
-
-
-    if (language === "en") {
-
-        document.body.classList.add("english");
-
-
-        document.documentElement.lang =
-            "en";
-
-
-        document.documentElement.dir =
-            "ltr";
-
-
-        document
-            .getElementById("faButton")
-            .classList
-            .remove("active");
-
-
-        document
-            .getElementById("enButton")
-            .classList
-            .add("active");
-
-    }
-
-
-    else {
-
-        document.body.classList.remove("english");
-
-
-        document.documentElement.lang =
-            "fa";
-
-
-        document.documentElement.dir =
-            "rtl";
-
-
-        document
-            .getElementById("enButton")
-            .classList
-            .remove("active");
-
-
-        document
-            .getElementById("faButton")
-            .classList
-            .add("active");
-    }
-
-
-    localStorage.setItem(
-        "language",
-        language
-    );
-}
-
-
-
-/* =====================================================
    LOAD SAVED SETTINGS
 ===================================================== */
 
 const savedTheme =
     localStorage.getItem("theme");
-
-
-const savedLanguage =
-    localStorage.getItem("language");
-
-
-if (savedTheme === "dark") {
-
-    document.body.classList.add("dark");
-}
-
-
-if (savedLanguage === "en") {
-
-    setLanguage("en");
-
-}
-
-else {
-
-    setLanguage("fa");
-}
 
 
 updateThemeIcon();
