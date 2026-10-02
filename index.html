@@ -110,7 +110,7 @@
                 Arial,
                 sans-serif;
 
-            overflow: hidden;
+            overflow-x: hidden;
 
             color: var(--text);
 
@@ -138,18 +138,18 @@
             position: relative;
 
             width: 100vw;
-            height: 100vh;
-
-            min-height: 600px;
+            min-height: 100vh;
+            height: auto;
 
             display: flex;
+            flex-direction: column;
 
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
 
             padding: 30px;
 
-            overflow: hidden;
+            overflow: visible;
         }
 
 
@@ -271,6 +271,7 @@
             width: 100%;
 
             max-width: 1000px;
+            min-height: 100vh;
 
             display: flex;
 
@@ -509,9 +510,8 @@
 
 
             .content {
-
-                transform:
-                    translateY(-5px);
+                min-height: 100svh;
+                transform: translateY(-5px);
             }
 
 
@@ -592,6 +592,75 @@
 
                 margin-bottom: 25px;
             }
+        }
+
+
+        /* =================================================
+           30-HOUR CLOCK
+        ================================================= */
+        .clock-section {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px auto 50px;
+            padding: 30px 15px 45px;
+            text-align: center;
+        }
+
+        .clock-title {
+            color: var(--text);
+            font-size: clamp(20px, 2.5vw, 28px);
+            margin-bottom: 18px;
+        }
+
+        .clock-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            direction: rtl;
+            margin-bottom: 12px;
+        }
+
+        .clock-toggle {
+            padding: 9px 18px;
+            font-size: 14px;
+            font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: var(--control-bg);
+            border: 1px solid var(--control-border);
+            border-radius: 24px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 6px 20px var(--shadow);
+            transition: background .3s ease, color .3s ease;
+        }
+
+        .clock-toggle:hover { opacity: .85; }
+
+        .clock-canvas {
+            width: 320px;
+            height: 320px;
+            max-width: 90vw;
+            display: block;
+            margin: 15px auto;
+            background: transparent;
+        }
+
+        .clock-digital {
+            direction: ltr;
+            font-size: clamp(28px, 5vw, 38px);
+            font-weight: bold;
+            letter-spacing: 4px;
+            white-space: nowrap;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 700px) {
+            .clock-section { padding-top: 20px; }
+            .clock-canvas { width: 290px; height: 290px; }
         }
 
     </style>
@@ -684,6 +753,22 @@
     </section>
 
 
+
+
+<!-- =====================================================
+     30-HOUR CLOCK AT BOTTOM OF SITE
+===================================================== -->
+<section class="clock-section" aria-label="ساعت ۳۰ ساعته">
+    <h2 class="clock-title">ساعت ۳۰ ساعته</h2>
+    <div class="clock-controls">
+        <button class="clock-toggle" id="clockModeBtn" type="button">سوییچ به حالت ۳۰ ساعته</button>
+    </div>
+    <canvas id="clockCanvas" class="clock-canvas" width="320" height="320"></canvas>
+    <div class="clock-digital">
+        <span id="clockHour">00</span> : <span id="clockMin">00</span> : <span id="clockSec">00</span>
+    </div>
+</section>
+
 </main>
 
 
@@ -737,8 +822,111 @@ function updateThemeIcon() {
 const savedTheme =
     localStorage.getItem("theme");
 
+if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+}
 
 updateThemeIcon();
+
+
+
+/* =====================================================
+   30-HOUR CLOCK
+===================================================== */
+let clockTenHourMode = true;
+const clockCanvas = document.getElementById("clockCanvas");
+const clockCtx = clockCanvas.getContext("2d");
+
+function get30HourTime() {
+    const now = new Date();
+    const seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
+    const total = seconds * (300000 / 86400);
+    return {
+        hour: Math.floor(total / 10000) % 30,
+        minute: Math.floor((total % 10000) / 100),
+        second: Math.floor(total % 100)
+    };
+}
+
+function draw30HourClock(hour, min, sec) {
+    const ctx = clockCtx, cx = 160, cy = 160, r = 145;
+    ctx.clearRect(0, 0, 320, 320);
+    const dark = document.body.classList.contains("dark");
+    const divisions = clockTenHourMode ? 10 : 30;
+    const ringColor = dark ? "#333" : "#c7d7e5";
+    const tickColor = dark ? "#ddd" : "#284b68";
+    const labelColor = dark ? "#fff" : "#062d5c";
+    const minorColor = dark ? "#666" : "#8aa4b8";
+
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.lineWidth = 19; ctx.strokeStyle = ringColor; ctx.stroke();
+
+    for (let i = 0; i < divisions; i++) {
+        const ang = Math.PI * 2 * i / divisions - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + (r - 27) * Math.cos(ang), cy + (r - 27) * Math.sin(ang));
+        ctx.lineTo(cx + (r - 8) * Math.cos(ang), cy + (r - 8) * Math.sin(ang));
+        ctx.lineWidth = 4; ctx.strokeStyle = tickColor; ctx.stroke();
+        const tx = cx + (r - 50) * Math.cos(ang);
+        const ty = cy + (r - 50) * Math.sin(ang);
+        ctx.fillStyle = labelColor; ctx.font = "bold 14px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(String(i), tx, ty);
+    }
+
+    if (clockTenHourMode) {
+        for (let i = 0; i < divisions; i++) {
+            const a1 = Math.PI * 2 * i / divisions - Math.PI / 2;
+            const a2 = Math.PI * 2 * (i + 1) / divisions - Math.PI / 2;
+            for (let k = 1; k <= 10; k++) {
+                const ang = a1 + (a2 - a1) * (k / 11);
+                ctx.beginPath();
+                ctx.moveTo(cx + (r - 19) * Math.cos(ang), cy + (r - 19) * Math.sin(ang));
+                ctx.lineTo(cx + (r - 12) * Math.cos(ang), cy + (r - 12) * Math.sin(ang));
+                ctx.lineWidth = 1.2; ctx.strokeStyle = minorColor; ctx.stroke();
+            }
+        }
+    }
+
+    let hourColor = "#00ccff";
+    if (clockTenHourMode) {
+        if (hour >= 10 && hour <= 19) hourColor = "#ffcc00";
+        else if (hour >= 20) hourColor = "#cc66ff";
+    }
+
+    const hDisplay = clockTenHourMode ? hour % 10 : hour;
+    const hAng = Math.PI * 2 * (hDisplay % divisions) / divisions + Math.PI * 2 * min / (divisions * 100) - Math.PI / 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 65 * Math.cos(hAng), cy + 65 * Math.sin(hAng));
+    ctx.lineWidth = 8; ctx.strokeStyle = hourColor; ctx.lineCap = "round"; ctx.stroke();
+
+    const mAng = Math.PI * 2 * min / 100 - Math.PI / 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 99 * Math.cos(mAng), cy + 99 * Math.sin(mAng));
+    ctx.lineWidth = 5; ctx.strokeStyle = "#00ff88"; ctx.stroke();
+
+    const sAng = Math.PI * 2 * sec / 100 - Math.PI / 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 114 * Math.cos(sAng), cy + 114 * Math.sin(sAng));
+    ctx.lineWidth = 2.5; ctx.strokeStyle = "#ff4444"; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+    ctx.fillStyle = hourColor; ctx.fill();
+}
+
+function update30HourClock() {
+    const t = get30HourTime();
+    const displayHour = clockTenHourMode ? t.hour % 10 : t.hour;
+    document.getElementById("clockHour").textContent = String(displayHour).padStart(2, "0");
+    document.getElementById("clockMin").textContent = String(t.minute).padStart(2, "0");
+    document.getElementById("clockSec").textContent = String(t.second).padStart(2, "0");
+    draw30HourClock(t.hour, t.minute, t.second);
+}
+
+document.getElementById("clockModeBtn").addEventListener("click", () => {
+    clockTenHourMode = !clockTenHourMode;
+    document.getElementById("clockModeBtn").textContent = clockTenHourMode ? "سوییچ به حالت ۳۰ ساعته" : "سوییچ به حالت ۱۰ ساعته";
+    update30HourClock();
+});
+
+setInterval(update30HourClock, 50);
+update30HourClock();
 
 </script>
 
