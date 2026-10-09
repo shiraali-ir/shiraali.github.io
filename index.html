@@ -184,10 +184,21 @@
     }
 
     .result-engine {
-      display: inline-block;
+      display: block;
       margin-top: 10px;
       color: var(--muted);
       font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .match-count {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 3px 9px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     .warning {
@@ -266,16 +277,16 @@
     const INITIAL_LIMIT = 5;
     const MAX_RESULTS = 9;
 
-    // All five engines are requested automatically.
+    // ترتیب درخواست موتورهای جست‌وجو
     const SEARCH_ENGINES = [
       "google",
       "bing",
-      "duckduckgo",
       "brave",
+      "duckduckgo",
       "yandex"
     ];
 
-    // Used only when two results have the same engine count.
+    // اولویت موتور برای شکستن تساوی
     const ENGINE_PRIORITY = [
       "google",
       "bing",
@@ -283,6 +294,14 @@
       "duckduckgo",
       "yandex"
     ];
+
+    const ENGINE_NAMES = {
+      google: "Google",
+      bing: "Bing",
+      brave: "Brave",
+      duckduckgo: "DuckDuckGo",
+      yandex: "Yandex"
+    };
 
     const themeButton = document.getElementById("theme");
     const searchForm = document.getElementById("searchForm");
@@ -309,13 +328,12 @@
     function addTextElement(parent, tag, text, className) {
       const element = document.createElement(tag);
       element.textContent = text || "";
-
       if (className) element.className = className;
-
       parent.appendChild(element);
       return element;
     }
 
+    // یکسان‌سازی URL برای شناسایی نتایج تکراری
     function normalizedUrl(rawUrl) {
       try {
         const url = new URL(rawUrl);
@@ -343,7 +361,6 @@
         ].forEach(key => url.searchParams.delete(key));
 
         url.searchParams.sort();
-
         return url.href;
       } catch {
         return null;
@@ -370,7 +387,9 @@
       }
 
       try {
-        return /\/title\/tt\d+/i.test(new URL(result.url).pathname);
+        return /\/title\/tt\d+/i.test(
+          new URL(result.url).pathname
+        );
       } catch {
         return false;
       }
@@ -381,7 +400,6 @@
         ? result.engines
         : (result.engine ? [result.engine] : []);
 
-      // Only recognized engines are considered.
       return [...new Set(
         raw
           .map(name => String(name).toLowerCase().trim())
@@ -389,75 +407,93 @@
       )];
     }
 
-    function prepareResults(data) {
-      const seen = new Set();
-      const all = [];
+    function bestEnginePriority(result) {
+      const ranks = result._engines
+        .map(engine => ENGINE_PRIORITY.indexOf(engine))
+        .filter(rank => rank >= 0);
 
-      // Deduplicate URLs and retain the engines reported by the API.
+      return ranks.length
+        ? Math.min(...ranks)
+        : ENGINE_PRIORITY.length;
+    }
+
+    function specialPriority(result) {
+      if (isIMDb(result)) return 0;
+      if (isWikipedia(result)) return 1;
+      return 2;
+    }
+
+    // ادغام نتایج تکراری و مرتب‌سازی بر اساس تعداد موتورهای مشترک
+    function prepareResults(data) {
+      const byUrl = new Map();
+
       for (const original of (data.results || [])) {
         const url = normalizedUrl(original.url);
+        if (!url) continue;
 
-        if (!url || seen.has(url)) continue;
-
-        seen.add(url);
-
-        all.push({
+        const engines = getResultEngines(original);
+        const incoming = {
           ...original,
           url,
-          _engines: getResultEngines(original)
-        });
-      }
+          _engines: engines
+        };
 
-      const used = new Set();
-      const ordered = [];
+        const existing = byUrl.get(url);
 
-      function takeFirst(predicate) {
-        const found = all.find(
-          item => !used.has(item.url) && predicate(item)
+        if (!existing) {
+          byUrl.set(url, incoming);
+          continue;
+        }
+
+        // منابع نتیجهٔ جدید و نتیجهٔ قبلی را با هم ادغام کن
+        const mergedEngines = [
+          ...new Set([
+            ...existing._engines,
+            ...incoming._engines
+          ])
+        ].sort((a, b) =>
+          ENGINE_PRIORITY.indexOf(a) -
+          ENGINE_PRIORITY.indexOf(b)
         );
 
-        if (found) {
-          used.add(found.url);
-          ordered.push(found);
-        }
+        // برای عنوان و توضیحات، نسخهٔ دارای اولویت منبع بالاتر را نگه دار
+        const preferred =
+          bestEnginePriority(incoming) <
+          bestEnginePriority(existing)
+            ? incoming
+            : existing;
+
+        byUrl.set(url, {
+          ...existing,
+          ...preferred,
+          url,
+          _engines: mergedEngines
+        });
       }
 
-      // 1. IMDb title result, if one was actually returned.
-      takeFirst(isIMDb);
+      const all = [...byUrl.values()];
 
-      // 2. Wikipedia result, if one was actually returned.
-      takeFirst(isWikipedia);
+      // اول تعداد موتورهای پیدا‌کننده؛ بعد اولویت موتور؛
+      // در تساوی کامل، IMDb و سپس Wikipedia
+      all.sort((a, b) => {
+        const countDifference =
+          b._engines.length - a._engines.length;
 
-      // 3. Remaining results: most reporting engines first.
-      // Ties are resolved by Google, Bing, Brave,
-      // DuckDuckGo, then Yandex.
-      const remaining = all
-        .filter(item => !used.has(item.url))
-        .sort((a, b) => {
-          const countDifference =
-            b._engines.length - a._engines.length;
+        if (countDifference !== 0) {
+          return countDifference;
+        }
 
-          if (countDifference !== 0) {
-            return countDifference;
-          }
+        const engineDifference =
+          bestEnginePriority(a) - bestEnginePriority(b);
 
-          function bestPriority(item) {
-            const ranks = item._engines
-              .map(engine => ENGINE_PRIORITY.indexOf(engine))
-              .filter(rank => rank >= 0);
+        if (engineDifference !== 0) {
+          return engineDifference;
+        }
 
-            return ranks.length
-              ? Math.min(...ranks)
-              : ENGINE_PRIORITY.length;
-          }
+        return specialPriority(a) - specialPriority(b);
+      });
 
-          return bestPriority(a) - bestPriority(b);
-        });
-
-      ordered.push(...remaining);
-
-      // At most nine actual search results.
-      return ordered.slice(0, MAX_RESULTS);
+      return all.slice(0, MAX_RESULTS);
     }
 
     function renderOneResult(result) {
@@ -481,15 +517,29 @@
         addTextElement(card, "p", result.content);
       }
 
-      const engineText = result._engines.length
-        ? result._engines.join(", ")
-        : "";
+      const engineNames = result._engines.map(
+        engine => ENGINE_NAMES[engine] || engine
+      );
 
-      if (engineText) {
+      if (engineNames.length > 0) {
         addTextElement(
           card,
           "span",
-          "منبع: " + engineText,
+          `تعداد موتورهای پیدا‌کننده: ${engineNames.length}`,
+          "match-count"
+        );
+
+        addTextElement(
+          card,
+          "span",
+          "منابع: " + engineNames.join("، "),
+          "result-engine"
+        );
+      } else {
+        addTextElement(
+          card,
+          "span",
+          "تعداد موتورهای شناسایی‌شده: ۰",
           "result-engine"
         );
       }
@@ -506,7 +556,7 @@
 
       if (currentWarnings.length) {
         const messages = currentWarnings.map(item => {
-          const name = item[0] || "موتور ناشناس";
+          const name = ENGINE_NAMES[item[0]] || item[0] || "موتور ناشناس";
           const reason = item[1] || "پاسخ نداد";
           return `${name}: ${reason}`;
         });
