@@ -319,14 +319,6 @@
         .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
     });
 
-    const engineAliases = {
-      google: "!go",
-      bing: "!bi",
-      duckduckgo: "!ddg",
-      brave: "!br",
-      yandex: "!ya"
-    };
-
     function addTextElement(parent, tag, text, className) {
       const element = document.createElement(tag);
       element.textContent = text || "";
@@ -339,10 +331,13 @@
       try {
         const url = new URL(rawUrl);
         if (!["http:", "https:"].includes(url.protocol)) return null;
+
         url.hash = "";
+
         if (url.pathname.length > 1) {
           url.pathname = url.pathname.replace(/\/+$/, "");
         }
+
         return url.href;
       } catch {
         return null;
@@ -358,6 +353,7 @@
       for (const result of (data.results || [])) {
         const url = normalizedUrl(result.url);
         if (!url || seen.has(url)) continue;
+
         seen.add(url);
         uniqueResults.push({ ...result, url });
       }
@@ -376,10 +372,12 @@
 
         const heading = document.createElement("h2");
         const link = document.createElement("a");
+
         link.href = result.url;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.textContent = result.title || result.url;
+
         heading.appendChild(link);
         card.appendChild(heading);
 
@@ -394,14 +392,19 @@
           : (result.engine || "");
 
         if (engines) {
-          addTextElement(card, "span",
-            "منبع: " + engines, "result-engine");
+          addTextElement(
+            card,
+            "span",
+            "منبع: " + engines,
+            "result-engine"
+          );
         }
 
         resultsBox.appendChild(card);
       }
 
       const failedEngines = data.unresponsive_engines || [];
+
       if (failedEngines.length) {
         const names = failedEngines.map(item => {
           const name = item[0] || "موتور ناشناس";
@@ -435,15 +438,10 @@
         return;
       }
 
-      // SearXNG engine shortcuts are added to the query.
-      const enginePrefix = selected
-        .map(engine => engineAliases[engine])
-        .filter(Boolean)
-        .join(" ");
-
-      const searchQuery = `${enginePrefix} ${query}`.trim();
+      // Send selected engine names directly to SearXNG.
       const url = new URL(API);
-      url.searchParams.set("q", searchQuery);
+      url.searchParams.set("q", query);
+      url.searchParams.set("engines", selected.join(","));
       url.searchParams.set("format", "json");
 
       submitButton.disabled = true;
@@ -465,6 +463,7 @@
         renderResults(data);
       } catch (error) {
         console.error("Shiraali Search error:", error);
+
         statusBox.textContent =
           "دریافت نتایج ناموفق بود. ممکن است سرویس در حال بیدار شدن باشد یا دسترسی مرورگر (CORS) مسدود شده باشد. چند لحظه صبر کن و دوباره امتحان کن.";
 
@@ -474,6 +473,7 @@
         help.target = "_blank";
         help.rel = "noopener noreferrer";
         help.textContent = "آزمایش مستقیم سرویس جست‌وجو";
+
         resultsBox.appendChild(help);
       } finally {
         submitButton.disabled = false;
