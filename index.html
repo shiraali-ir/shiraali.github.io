@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#dff2ff">
-  <title>Shiraali</title>
-  <meta name="description" content="جست‌وجوی شخصی Shiraali">
+  <title>Shiraali Search</title>
+  <meta name="description" content="جست‌وجوی یکپارچه Shiraali">
 
   <style>
     :root {
@@ -18,6 +18,7 @@
       --button: #ffffff;
       --muted: #526b80;
       --accent: #1677c8;
+      --card: rgba(255,255,255,.72);
     }
 
     body.dark {
@@ -29,11 +30,10 @@
       --button: #163e60;
       --muted: #c0d5e7;
       --accent: #238de0;
+      --card: rgba(16,47,76,.8);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -45,7 +45,8 @@
     }
 
     .theme {
-      position: absolute;
+      position: fixed;
+      z-index: 5;
       top: 18px;
       left: 18px;
       border: 1px solid var(--border);
@@ -59,9 +60,9 @@
     }
 
     main {
-      width: min(620px, 92%);
+      width: min(760px, 92%);
       margin: 0 auto;
-      padding-top: clamp(90px, 17vh, 165px);
+      padding: clamp(75px, 12vh, 120px) 0 45px;
       text-align: center;
     }
 
@@ -72,12 +73,10 @@
       max-width: 42vw;
       max-height: 42vw;
       object-fit: contain;
-      margin: 0 auto 30px;
+      margin: 0 auto 28px;
     }
 
-    .search-form {
-      width: 100%;
-    }
+    .search-form { width: 100%; }
 
     .search-box {
       display: flex;
@@ -88,13 +87,11 @@
       border: 1px solid var(--border);
       border-radius: 30px;
       background: var(--input);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
-      transition: box-shadow .2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
 
-    .search-box:focus-within,
-    .search-box:hover {
-      box-shadow: 0 3px 12px rgba(0, 0, 0, .09);
+    .search-box:focus-within {
+      box-shadow: 0 3px 12px rgba(0,0,0,.1);
     }
 
     .search-icon {
@@ -115,10 +112,7 @@
       text-align: right;
     }
 
-    #query::placeholder {
-      color: var(--muted);
-      opacity: .85;
-    }
+    #query::placeholder { color: var(--muted); }
 
     .submit {
       flex-shrink: 0;
@@ -127,13 +121,18 @@
       border: 0;
       border-radius: 50%;
       background: var(--accent);
-      color: #fff;
+      color: white;
       cursor: pointer;
       font-size: 20px;
     }
 
+    .submit:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
     details {
-      margin: 17px auto 0;
+      margin: 14px auto 0;
       text-align: center;
       color: var(--muted);
       font-size: 13px;
@@ -147,9 +146,7 @@
       user-select: none;
     }
 
-    summary:hover {
-      background: var(--button);
-    }
+    summary:hover { background: var(--button); }
 
     .engines {
       display: flex;
@@ -166,53 +163,120 @@
       cursor: pointer;
     }
 
-    .engines input {
-      accent-color: var(--accent);
+    .engines input { accent-color: var(--accent); }
+
+    #status {
+      margin: 22px 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    #results {
+      text-align: right;
+      margin-top: 18px;
+    }
+
+    .result {
+      margin: 0 0 14px;
+      padding: 17px 18px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      overflow-wrap: anywhere;
+    }
+
+    .result h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.7;
+    }
+
+    .result h2 a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .result h2 a:hover { text-decoration: underline; }
+
+    .result-url {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      direction: ltr;
+      text-align: left;
+      word-break: break-all;
+    }
+
+    .result p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    .result-engine {
+      display: inline-block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .warning {
+      margin: 14px 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+      text-align: right;
+    }
+
+    .more {
+      display: inline-block;
+      margin: 15px 0 5px;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--button);
+      color: var(--text);
+      text-decoration: none;
     }
 
     @media (max-width: 480px) {
-      main {
-        padding-top: 115px;
-      }
-
-      .logo {
-        margin-bottom: 25px;
-      }
-
-      .search-box {
-        min-height: 52px;
-      }
+      main { padding-top: 100px; }
+      .logo { margin-bottom: 24px; }
+      .search-box { min-height: 52px; }
+      .result { padding: 14px; }
+      .result h2 { font-size: 16px; }
     }
   </style>
 </head>
 
 <body>
   <button class="theme" id="theme" type="button"
-          aria-label="تغییر حالت روشن و تاریک"
-          title="تغییر حالت روشن و تاریک">🌙</button>
+    aria-label="تغییر حالت روشن و تاریک"
+    title="تغییر حالت روشن و تاریک">🌙</button>
 
   <main>
-    <img
-      class="logo"
+    <img class="logo"
       src="https://shiraali.ir/logo.png"
-      alt="شیر با دست روی کره زمین"
-    >
+      alt="شیر با دست روی کره زمین">
 
     <form class="search-form" id="searchForm">
       <div class="search-box">
         <span class="search-icon" aria-hidden="true">⌕</span>
 
-        <input
-          id="query"
-          type="search"
+        <input id="query" type="search"
           placeholder="جست‌وجو..."
           aria-label="عبارت جست‌وجو"
-          autocomplete="off"
-          required
-        >
+          autocomplete="off" required>
 
-        <button class="submit" type="submit"
-                aria-label="جست‌وجو">➜</button>
+        <button class="submit" id="submitButton"
+          type="submit" aria-label="جست‌وجو">➜</button>
       </div>
 
       <details>
@@ -224,54 +288,196 @@
           <label><input type="checkbox" value="brave" checked> Brave</label>
           <label><input type="checkbox" value="yandex"> Yandex</label>
         </div>
+        <p>نتایج به‌وسیلهٔ سرویس جست‌وجوی Shiraali گردآوری می‌شوند؛
+          در دسترس بودن هر موتور به محدودیت‌های آن بستگی دارد.</p>
       </details>
     </form>
+
+    <div id="status" role="status" aria-live="polite">
+      عبارت موردنظرت را وارد کن و جست‌وجو را بزن.
+    </div>
+
+    <section id="results" aria-label="نتایج جست‌وجو"></section>
   </main>
 
   <script>
+    const API = "https://shiraali-search.onrender.com/search";
+
     const themeButton = document.getElementById("theme");
     const searchForm = document.getElementById("searchForm");
     const queryInput = document.getElementById("query");
+    const submitButton = document.getElementById("submitButton");
+    const statusBox = document.getElementById("status");
+    const resultsBox = document.getElementById("results");
 
     themeButton.addEventListener("click", () => {
       document.body.classList.toggle("dark");
-
       const dark = document.body.classList.contains("dark");
-      themeButton.textContent = dark ? "☀️" : "🌙";
 
+      themeButton.textContent = dark ? "☀️" : "🌙";
       document.querySelector('meta[name="theme-color"]')
         .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
     });
 
-    const engineUrls = {
-      google: q => "https://www.google.com/search?q=" + q,
-      bing: q => "https://www.bing.com/search?q=" + q,
-      duckduckgo: q => "https://duckduckgo.com/?q=" + q,
-      brave: q => "https://search.brave.com/search?q=" + q,
-      yandex: q => "https://yandex.com/search/?text=" + q
+    const engineAliases = {
+      google: "!go",
+      bing: "!bi",
+      duckduckgo: "!ddg",
+      brave: "!br",
+      yandex: "!ya"
     };
 
-    searchForm.addEventListener("submit", event => {
+    function addTextElement(parent, tag, text, className) {
+      const element = document.createElement(tag);
+      element.textContent = text || "";
+      if (className) element.className = className;
+      parent.appendChild(element);
+      return element;
+    }
+
+    function normalizedUrl(rawUrl) {
+      try {
+        const url = new URL(rawUrl);
+        if (!["http:", "https:"].includes(url.protocol)) return null;
+        url.hash = "";
+        if (url.pathname.length > 1) {
+          url.pathname = url.pathname.replace(/\/+$/, "");
+        }
+        return url.href;
+      } catch {
+        return null;
+      }
+    }
+
+    function renderResults(data) {
+      resultsBox.replaceChildren();
+
+      const seen = new Set();
+      const uniqueResults = [];
+
+      for (const result of (data.results || [])) {
+        const url = normalizedUrl(result.url);
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        uniqueResults.push({ ...result, url });
+      }
+
+      if (uniqueResults.length === 0) {
+        statusBox.textContent =
+          "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
+      } else {
+        statusBox.textContent =
+          `${uniqueResults.length} نتیجه پیدا شد.`;
+      }
+
+      for (const result of uniqueResults) {
+        const card = document.createElement("article");
+        card.className = "result";
+
+        const heading = document.createElement("h2");
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = result.title || result.url;
+        heading.appendChild(link);
+        card.appendChild(heading);
+
+        addTextElement(card, "div", result.url, "result-url");
+
+        if (result.content) {
+          addTextElement(card, "p", result.content);
+        }
+
+        const engines = Array.isArray(result.engines)
+          ? result.engines.join(", ")
+          : (result.engine || "");
+
+        if (engines) {
+          addTextElement(card, "span",
+            "منبع: " + engines, "result-engine");
+        }
+
+        resultsBox.appendChild(card);
+      }
+
+      const failedEngines = data.unresponsive_engines || [];
+      if (failedEngines.length) {
+        const names = failedEngines.map(item => {
+          const name = item[0] || "موتور ناشناس";
+          const reason = item[1] || "پاسخ نداد";
+          return `${name}: ${reason}`;
+        });
+
+        addTextElement(
+          resultsBox,
+          "div",
+          "برخی موتورهای جست‌وجو پاسخ نداده‌اند: " +
+            names.join("؛ "),
+          "warning"
+        );
+      }
+    }
+
+    searchForm.addEventListener("submit", async event => {
       event.preventDefault();
 
       const query = queryInput.value.trim();
       if (!query) return;
 
-      const encoded = encodeURIComponent(query);
       const selected = [
-        ...document.querySelectorAll(
-          ".engines input:checked"
-        )
+        ...document.querySelectorAll(".engines input:checked")
       ].map(input => input.value);
 
       if (selected.length === 0) {
-        alert("حداقل یک موتور جست‌وجو انتخاب کن.");
+        statusBox.textContent =
+          "حداقل یک موتور جست‌وجو را انتخاب کن.";
         return;
       }
 
-      selected.forEach(engine => {
-        window.open(engineUrls[engine](encoded), "_blank");
-      });
+      // SearXNG engine shortcuts are added to the query.
+      const enginePrefix = selected
+        .map(engine => engineAliases[engine])
+        .filter(Boolean)
+        .join(" ");
+
+      const searchQuery = `${enginePrefix} ${query}`.trim();
+      const url = new URL(API);
+      url.searchParams.set("q", searchQuery);
+      url.searchParams.set("format", "json");
+
+      submitButton.disabled = true;
+      statusBox.textContent =
+        "در حال جست‌وجو... بار اول ممکن است سرویس Render کمی دیر پاسخ دهد.";
+      resultsBox.replaceChildren();
+
+      try {
+        const response = await fetch(url.toString(), {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        renderResults(data);
+      } catch (error) {
+        console.error("Shiraali Search error:", error);
+        statusBox.textContent =
+          "دریافت نتایج ناموفق بود. ممکن است سرویس در حال بیدار شدن باشد یا دسترسی مرورگر (CORS) مسدود شده باشد. چند لحظه صبر کن و دوباره امتحان کن.";
+
+        const help = document.createElement("a");
+        help.className = "more";
+        help.href = url.toString();
+        help.target = "_blank";
+        help.rel = "noopener noreferrer";
+        help.textContent = "آزمایش مستقیم سرویس جست‌وجو";
+        resultsBox.appendChild(help);
+      } finally {
+        submitButton.disabled = false;
+      }
     });
   </script>
 </body>
