@@ -1,0 +1,328 @@
+**نام فایل: `index.html`**
+
+تمام کد زیر را در فایل جدید `index.html` قرار بده:
+
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dff2ff">
+  <title>Shiraali Search | جست‌وجوی شخصی</title>
+  <meta name="description" content="جست‌وجوی شخصی در چند موتور جست‌وجو از یک صفحه">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #dff2ff;
+      --text: #102c46;
+      --muted: #526b80;
+      --panel: rgba(255,255,255,.8);
+      --input: #fff;
+      --border: #bad9ed;
+      --accent: #1677c8;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #0b3157;
+      --text: #f4f9ff;
+      --muted: #c0d5e7;
+      --panel: rgba(255,255,255,.08);
+      --input: #102f4c;
+      --border: #355a79;
+      --accent: #238de0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Tahoma, Arial, sans-serif;
+      transition: background .2s, color .2s;
+    }
+
+    header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 18px;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .theme-button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 14px;
+      color: var(--text);
+      background: var(--panel);
+      cursor: pointer;
+    }
+
+    main {
+      width: min(760px, 92%);
+      margin: 7vh auto 40px;
+      text-align: center;
+    }
+
+    .brand {
+      font-size: clamp(28px, 6vw, 44px);
+      font-weight: 700;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.9;
+      margin: 0 auto 28px;
+    }
+
+    .search-panel {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 10px 35px rgba(15,54,85,.07);
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 56px;
+      padding: 14px 17px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      outline: none;
+      background: var(--input);
+      color: var(--text);
+      text-align: right;
+      font-size: 17px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(22,119,200,.13);
+    }
+
+    .engines {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      margin: 17px 0;
+    }
+
+    .engine {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 13px;
+      background: var(--input);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .engine input {
+      accent-color: var(--accent);
+    }
+
+    .search-button {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .search-button:hover {
+      filter: brightness(1.06);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.9;
+      margin: 15px 0 0;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        margin-top: 4vh;
+      }
+
+      .search-panel {
+        padding: 13px;
+      }
+
+      .engine {
+        font-size: 13px;
+        padding: 9px 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <button class="theme-button" id="themeButton" type="button">
+      🌙 حالت تاریک
+    </button>
+  </header>
+
+  <main>
+    <div class="brand">Shiraali Search</div>
+
+    <p class="subtitle">
+      یک جست‌وجو؛ چند موتور جست‌وجو
+      <br>
+      عبارتت را بنویس و موتورهای دلخواهت را انتخاب کن.
+    </p>
+
+    <section class="search-panel">
+      <form id="searchForm">
+        <input
+          id="query"
+          class="search-input"
+          type="search"
+          placeholder="چه چیزی می‌خواهی پیدا کنی؟"
+          aria-label="عبارت جست‌وجو"
+          autocomplete="off"
+          required
+        >
+
+        <div class="engines">
+          <label class="engine">
+            <input type="checkbox" name="engine" value="google" checked>
+            Google
+          </label>
+
+          <label class="engine">
+            <input type="checkbox" name="engine" value="bing" checked>
+            Bing
+          </label>
+
+          <label class="engine">
+            <input type="checkbox" name="engine" value="duckduckgo" checked>
+            DuckDuckGo
+          </label>
+
+          <label class="engine">
+            <input type="checkbox" name="engine" value="brave" checked>
+            Brave
+          </label>
+
+          <label class="engine">
+            <input type="checkbox" name="engine" value="yandex">
+            Yandex
+          </label>
+        </div>
+
+        <button class="search-button" type="submit">
+          🔎 جست‌وجو
+        </button>
+      </form>
+
+      <p class="hint">
+        نتایج هر موتور در زبانهٔ جداگانه باز می‌شود.
+        اگر چند زبانه باز نشد، اجازهٔ بازشدن پنجره‌های جدید را بررسی کن.
+      </p>
+    </section>
+
+    <footer>
+      Shiraali.ir · جست‌وجوی شخصی
+    </footer>
+  </main>
+
+  <script>
+    const form = document.getElementById("searchForm");
+    const queryInput = document.getElementById("query");
+    const themeButton = document.getElementById("themeButton");
+
+    const engines = {
+      google: q =>
+        "https://www.google.com/search?q=" + q,
+
+      bing: q =>
+        "https://www.bing.com/search?q=" + q,
+
+      duckduckgo: q =>
+        "https://html.duckduckgo.com/html/?q=" + q,
+
+      brave: q =>
+        "https://search.brave.com/search?q=" + q,
+
+      yandex: q =>
+        "https://yandex.com/search/?text=" + q
+    };
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const query = queryInput.value.trim();
+
+      if (!query) {
+        queryInput.focus();
+        return;
+      }
+
+      const encodedQuery = encodeURIComponent(query);
+
+      const selected = [
+        ...document.querySelectorAll(
+          'input[name="engine"]:checked'
+        )
+      ].map(input => input.value);
+
+      if (selected.length === 0) {
+        alert("لطفاً حداقل یک موتور جست‌وجو انتخاب کن.");
+        return;
+      }
+
+      selected.forEach(engine => {
+        window.open(
+          engines[engine](encodedQuery),
+          "_blank",
+          "noopener"
+        );
+      });
+    });
+
+    themeButton.addEventListener("click", function() {
+      document.body.classList.toggle("dark");
+
+      const dark = document.body.classList.contains("dark");
+
+      themeButton.textContent = dark
+        ? "☀️ حالت روشن"
+        : "🌙 حالت تاریک";
+
+      document.querySelector('meta[name="theme-color"]')
+        .setAttribute(
+          "content",
+          dark ? "#0b3157" : "#dff2ff"
+        );
+    });
+  </script>
+</body>
+</html>
+```
