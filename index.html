@@ -33,7 +33,9 @@
       --card: rgba(16,47,76,.8);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -76,7 +78,9 @@
       margin: 0 auto 28px;
     }
 
-    .search-form { width: 100%; }
+    .search-form {
+      width: 100%;
+    }
 
     .search-box {
       display: flex;
@@ -112,7 +116,9 @@
       text-align: right;
     }
 
-    #query::placeholder { color: var(--muted); }
+    #query::placeholder {
+      color: var(--muted);
+    }
 
     .submit {
       flex-shrink: 0;
@@ -164,7 +170,9 @@
       text-decoration: none;
     }
 
-    .result h2 a:hover { text-decoration: underline; }
+    .result h2 a:hover {
+      text-decoration: underline;
+    }
 
     .result-url {
       display: block;
@@ -184,21 +192,10 @@
     }
 
     .result-engine {
-      display: block;
+      display: inline-block;
       margin-top: 10px;
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.9;
-    }
-
-    .match-count {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 3px 9px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
     }
 
     .warning {
@@ -225,38 +222,73 @@
       font: inherit;
     }
 
-    .more:hover { filter: brightness(.97); }
-    .more[hidden] { display: none; }
+    .more:hover {
+      filter: brightness(.97);
+    }
+
+    .more[hidden] {
+      display: none;
+    }
 
     @media (max-width: 480px) {
-      main { padding-top: 100px; }
-      .logo { margin-bottom: 24px; }
-      .search-box { min-height: 52px; }
-      .result { padding: 14px; }
-      .result h2 { font-size: 16px; }
+      main {
+        padding-top: 100px;
+      }
+
+      .logo {
+        margin-bottom: 24px;
+      }
+
+      .search-box {
+        min-height: 52px;
+      }
+
+      .result {
+        padding: 14px;
+      }
+
+      .result h2 {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <button class="theme" id="theme" type="button"
+  <button
+    class="theme"
+    id="theme"
+    type="button"
     aria-label="تغییر حالت روشن و تاریک"
-    title="تغییر حالت روشن و تاریک">🌙</button>
+    title="تغییر حالت روشن و تاریک"
+  >🌙</button>
 
   <main>
-    <img class="logo"
+    <img
+      class="logo"
       src="https://shiraali.ir/logo.png"
-      alt="شیر با دست روی کره زمین">
+      alt="شیر با دست روی کره زمین"
+    >
 
     <form class="search-form" id="searchForm">
       <div class="search-box">
         <span class="search-icon" aria-hidden="true">⌕</span>
-        <input id="query" type="search"
+
+        <input
+          id="query"
+          type="search"
           placeholder="جست‌وجو..."
           aria-label="عبارت جست‌وجو"
-          autocomplete="off" required>
-        <button class="submit" id="submitButton"
-          type="submit" aria-label="جست‌وجو">➜</button>
+          autocomplete="off"
+          required
+        >
+
+        <button
+          class="submit"
+          id="submitButton"
+          type="submit"
+          aria-label="جست‌وجو"
+        >➜</button>
       </div>
     </form>
 
@@ -272,33 +304,29 @@
   </main>
 
   <script>
+    // نشانی API موتور جست‌وجو
     const API = "https://shiraali-search.onrender.com/search";
 
+    // ابتدا ۵ نتیجه و حداکثر ۹ نتیجه نمایش داده می‌شود.
     const INITIAL_LIMIT = 5;
     const MAX_RESULTS = 9;
 
-    // ترتیب درخواست موتورهای جست‌وجو
+    // فقط این سه موتور به‌صورت خودکار درخواست می‌شوند.
     const SEARCH_ENGINES = [
-      "google",
       "bing",
-      "brave",
       "duckduckgo",
       "yandex"
     ];
 
-    // اولویت موتور برای شکستن تساوی
+    // اولویت مرتب‌سازی در صورت برابر بودن تعداد منابع
     const ENGINE_PRIORITY = [
-      "google",
       "bing",
-      "brave",
       "duckduckgo",
       "yandex"
     ];
 
     const ENGINE_NAMES = {
-      google: "Google",
       bing: "Bing",
-      brave: "Brave",
       duckduckgo: "DuckDuckGo",
       yandex: "Yandex"
     };
@@ -315,6 +343,7 @@
     let visibleCount = 0;
     let currentWarnings = [];
 
+    // تغییر حالت روشن و تاریک
     themeButton.addEventListener("click", () => {
       document.body.classList.toggle("dark");
 
@@ -328,12 +357,16 @@
     function addTextElement(parent, tag, text, className) {
       const element = document.createElement(tag);
       element.textContent = text || "";
-      if (className) element.className = className;
+
+      if (className) {
+        element.className = className;
+      }
+
       parent.appendChild(element);
       return element;
     }
 
-    // یکسان‌سازی URL برای شناسایی نتایج تکراری
+    // یکسان‌سازی آدرس‌ها برای شناسایی نتایج تکراری
     function normalizedUrl(rawUrl) {
       try {
         const url = new URL(rawUrl);
@@ -361,6 +394,7 @@
         ].forEach(key => url.searchParams.delete(key));
 
         url.searchParams.sort();
+
         return url.href;
       } catch {
         return null;
@@ -395,6 +429,7 @@
       }
     }
 
+    // استخراج موتورهایی که هر نتیجه را گزارش کرده‌اند
     function getResultEngines(result) {
       const raw = Array.isArray(result.engines)
         ? result.engines
@@ -407,95 +442,78 @@
       )];
     }
 
-    function bestEnginePriority(result) {
-      const ranks = result._engines
-        .map(engine => ENGINE_PRIORITY.indexOf(engine))
-        .filter(rank => rank >= 0);
-
-      return ranks.length
-        ? Math.min(...ranks)
-        : ENGINE_PRIORITY.length;
-    }
-
-    function specialPriority(result) {
-      if (isIMDb(result)) return 0;
-      if (isWikipedia(result)) return 1;
-      return 2;
-    }
-
-    // ادغام نتایج تکراری و مرتب‌سازی بر اساس تعداد موتورهای مشترک
+    // حذف تکراری‌ها و مرتب‌سازی نتایج
     function prepareResults(data) {
-      const byUrl = new Map();
+      const seen = new Set();
+      const all = [];
 
       for (const original of (data.results || [])) {
         const url = normalizedUrl(original.url);
-        if (!url) continue;
 
-        const engines = getResultEngines(original);
-        const incoming = {
-          ...original,
-          url,
-          _engines: engines
-        };
-
-        const existing = byUrl.get(url);
-
-        if (!existing) {
-          byUrl.set(url, incoming);
+        if (!url || seen.has(url)) {
           continue;
         }
 
-        // منابع نتیجهٔ جدید و نتیجهٔ قبلی را با هم ادغام کن
-        const mergedEngines = [
-          ...new Set([
-            ...existing._engines,
-            ...incoming._engines
-          ])
-        ].sort((a, b) =>
-          ENGINE_PRIORITY.indexOf(a) -
-          ENGINE_PRIORITY.indexOf(b)
-        );
+        seen.add(url);
 
-        // برای عنوان و توضیحات، نسخهٔ دارای اولویت منبع بالاتر را نگه دار
-        const preferred =
-          bestEnginePriority(incoming) <
-          bestEnginePriority(existing)
-            ? incoming
-            : existing;
-
-        byUrl.set(url, {
-          ...existing,
-          ...preferred,
+        all.push({
+          ...original,
           url,
-          _engines: mergedEngines
+          _engines: getResultEngines(original)
         });
       }
 
-      const all = [...byUrl.values()];
+      const used = new Set();
+      const ordered = [];
 
-      // اول تعداد موتورهای پیدا‌کننده؛ بعد اولویت موتور؛
-      // در تساوی کامل، IMDb و سپس Wikipedia
-      all.sort((a, b) => {
-        const countDifference =
-          b._engines.length - a._engines.length;
+      function takeFirst(predicate) {
+        const found = all.find(
+          item => !used.has(item.url) && predicate(item)
+        );
 
-        if (countDifference !== 0) {
-          return countDifference;
+        if (found) {
+          used.add(found.url);
+          ordered.push(found);
         }
+      }
 
-        const engineDifference =
-          bestEnginePriority(a) - bestEnginePriority(b);
+      // در صورت وجود، ابتدا نتیجه IMDb نمایش داده می‌شود.
+      takeFirst(isIMDb);
 
-        if (engineDifference !== 0) {
-          return engineDifference;
-        }
+      // در صورت وجود، سپس نتیجه Wikipedia نمایش داده می‌شود.
+      takeFirst(isWikipedia);
 
-        return specialPriority(a) - specialPriority(b);
-      });
+      // بقیه نتایج بر اساس تعداد موتورهای تأییدکننده مرتب می‌شوند.
+      // در تساوی: Bing، سپس DuckDuckGo، سپس Yandex.
+      const remaining = all
+        .filter(item => !used.has(item.url))
+        .sort((a, b) => {
+          const countDifference =
+            b._engines.length - a._engines.length;
 
-      return all.slice(0, MAX_RESULTS);
+          if (countDifference !== 0) {
+            return countDifference;
+          }
+
+          function bestPriority(item) {
+            const ranks = item._engines
+              .map(engine => ENGINE_PRIORITY.indexOf(engine))
+              .filter(rank => rank >= 0);
+
+            return ranks.length
+              ? Math.min(...ranks)
+              : ENGINE_PRIORITY.length;
+          }
+
+          return bestPriority(a) - bestPriority(b);
+        });
+
+      ordered.push(...remaining);
+
+      return ordered.slice(0, MAX_RESULTS);
     }
 
+    // ساخت کارت هر نتیجه
     function renderOneResult(result) {
       const card = document.createElement("article");
       card.className = "result";
@@ -517,29 +535,15 @@
         addTextElement(card, "p", result.content);
       }
 
-      const engineNames = result._engines.map(
-        engine => ENGINE_NAMES[engine] || engine
-      );
+      const engineText = result._engines
+        .map(engine => ENGINE_NAMES[engine] || engine)
+        .join(", ");
 
-      if (engineNames.length > 0) {
+      if (engineText) {
         addTextElement(
           card,
           "span",
-          `تعداد موتورهای پیدا‌کننده: ${engineNames.length}`,
-          "match-count"
-        );
-
-        addTextElement(
-          card,
-          "span",
-          "منابع: " + engineNames.join("، "),
-          "result-engine"
-        );
-      } else {
-        addTextElement(
-          card,
-          "span",
-          "تعداد موتورهای شناسایی‌شده: ۰",
+          "منبع: " + engineText,
           "result-engine"
         );
       }
@@ -547,6 +551,7 @@
       resultsBox.appendChild(card);
     }
 
+    // نمایش نتایج و پیام‌های خطای موتورهای جست‌وجو
     function renderVisibleResults() {
       resultsBox.replaceChildren();
 
@@ -556,8 +561,9 @@
 
       if (currentWarnings.length) {
         const messages = currentWarnings.map(item => {
-          const name = ENGINE_NAMES[item[0]] || item[0] || "موتور ناشناس";
+          const name = item[0] || "موتور ناشناس";
           const reason = item[1] || "پاسخ نداد";
+
           return `${name}: ${reason}`;
         });
 
@@ -575,6 +581,7 @@
         visibleCount >= MAX_RESULTS;
     }
 
+    // نمایش ۴ نتیجه دیگر با هر بار کلیک
     showMoreButton.addEventListener("click", () => {
       visibleCount = Math.min(
         visibleCount + 4,
@@ -609,16 +616,23 @@
       renderVisibleResults();
     }
 
+    // اجرای جست‌وجو
     searchForm.addEventListener("submit", async event => {
       event.preventDefault();
 
       const query = queryInput.value.trim();
-      if (!query) return;
+
+      if (!query) {
+        return;
+      }
 
       const url = new URL(API);
 
       url.searchParams.set("q", query);
-      url.searchParams.set("engines", SEARCH_ENGINES.join(","));
+      url.searchParams.set(
+        "engines",
+        SEARCH_ENGINES.join(",")
+      );
       url.searchParams.set("format", "json");
 
       submitButton.disabled = true;
@@ -635,7 +649,9 @@
       try {
         const response = await fetch(url.toString(), {
           method: "GET",
-          headers: { "Accept": "application/json" }
+          headers: {
+            "Accept": "application/json"
+          }
         });
 
         if (!response.ok) {
