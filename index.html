@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#dff2ff">
-  <meta name="description" content="موتور جست‌وجوی شیرالی؛ جست‌وجوی یکپارچه در DuckDuckGo، Bing و Yandex">
+  <meta name="description" content="جست‌وجوی یکپارچه شیرالی">
   <title>شیرالی | Shiraali Search</title>
 
   <style>
@@ -18,7 +18,7 @@
       --button: #ffffff;
       --muted: #526b80;
       --accent: #1677c8;
-      --card: rgba(255,255,255,.78);
+      --card: rgba(255, 255, 255, .75);
     }
 
     body.dark {
@@ -30,7 +30,7 @@
       --button: #163e60;
       --muted: #c0d5e7;
       --accent: #238de0;
-      --card: rgba(16,47,76,.85);
+      --card: rgba(16, 47, 76, .85);
     }
 
     * {
@@ -48,7 +48,7 @@
 
     .theme {
       position: fixed;
-      z-index: 5;
+      z-index: 10;
       top: 18px;
       left: 18px;
       width: 42px;
@@ -64,8 +64,7 @@
     main {
       width: min(760px, 92%);
       margin: 0 auto;
-      padding: clamp(75px, 12vh, 120px) 0 45px;
-      text-align: center;
+      padding: 100px 0 45px;
     }
 
     .logo {
@@ -75,13 +74,7 @@
       max-width: 42vw;
       max-height: 42vw;
       object-fit: contain;
-      margin: 0 auto 22px;
-    }
-
-    h1 {
-      margin: 0 0 28px;
-      font-size: 25px;
-      font-weight: 600;
+      margin: 0 auto 28px;
     }
 
     .search-form {
@@ -93,20 +86,14 @@
       align-items: center;
       gap: 10px;
       min-height: 56px;
-      padding: 5px 9px 5px 7px;
+      padding: 5px 15px;
       border: 1px solid var(--border);
       border-radius: 30px;
       background: var(--input);
-      box-shadow: 0 2px 8px rgba(0,0,0,.04);
-    }
-
-    .search-box:focus-within {
-      box-shadow: 0 3px 12px rgba(0,0,0,.1);
     }
 
     .search-icon {
       flex-shrink: 0;
-      padding-right: 7px;
       color: var(--muted);
       font-size: 22px;
     }
@@ -129,14 +116,14 @@
 
     .submit {
       flex-shrink: 0;
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border: 0;
       border-radius: 50%;
       background: var(--accent);
-      color: white;
+      color: #ffffff;
       cursor: pointer;
-      font-size: 21px;
+      font-size: 20px;
     }
 
     .submit:disabled {
@@ -157,7 +144,7 @@
     }
 
     .result {
-      margin: 0 0 14px;
+      margin-bottom: 14px;
       padding: 17px 18px;
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -198,23 +185,19 @@
       white-space: pre-line;
     }
 
-    .result-meta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 12px;
+    .result-score {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
     }
 
-    .score {
-      display: inline-block;
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      color: var(--text);
-      font-weight: bold;
+    .result-engine {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
     }
 
     .warning {
@@ -225,27 +208,7 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.8;
-      text-align: right;
-    }
-
-    .more {
-      display: inline-block;
-      margin: 15px 0 5px;
-      padding: 10px 18px;
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background: var(--button);
-      color: var(--text);
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .more:hover {
-      filter: brightness(.97);
-    }
-
-    .more[hidden] {
-      display: none;
+      overflow-wrap: anywhere;
     }
 
     @media (max-width: 480px) {
@@ -254,15 +217,7 @@
       }
 
       .logo {
-        margin-bottom: 20px;
-      }
-
-      h1 {
-        font-size: 22px;
-      }
-
-      .search-box {
-        min-height: 52px;
+        margin-bottom: 24px;
       }
 
       .result {
@@ -289,10 +244,8 @@
     <img
       class="logo"
       src="https://shiraali.ir/logo.png"
-      alt="لوگوی شیرالی"
+      alt="شیر با دست روی کره زمین"
     >
-
-    <h1>شیرالی | Shiraali Search</h1>
 
     <form class="search-form" id="searchForm">
       <div class="search-box">
@@ -301,7 +254,7 @@
         <input
           id="query"
           type="search"
-          placeholder="چه چیزی می‌خواهی پیدا کنی؟"
+          placeholder="جست‌وجو..."
           aria-label="عبارت جست‌وجو"
           autocomplete="off"
           required
@@ -321,28 +274,35 @@
     </div>
 
     <section id="results" aria-label="نتایج جست‌وجو"></section>
-
-    <button id="showMore" class="more" type="button" hidden>
-      نمایش نتایج بیشتر
-    </button>
   </main>
 
   <script>
-    "use strict";
-
     const API = "https://shiraali-search.onrender.com/search";
 
-    // امتیاز ثابت هر موتور
+    // وزن ثابت هر موتور جست‌وجو
     const ENGINES = [
-      { name: "duckduckgo", label: "DuckDuckGo", weight: 5 },
-      { name: "bing",       label: "Bing",       weight: 3 },
-      { name: "yandex",     label: "Yandex",     weight: 1 }
+      {
+        id: "duckduckgo",
+        label: "DuckDuckGo",
+        points: 5,
+        priority: 0
+      },
+      {
+        id: "bing",
+        label: "Bing",
+        points: 3,
+        priority: 1
+      },
+      {
+        id: "yandex",
+        label: "Yandex",
+        points: 1,
+        priority: 2
+      }
     ];
 
-    // رابط کاربری: ابتدا ۵ نتیجه، سپس حداکثر ۹ نتیجه
-    const INITIAL_LIMIT = 5;
-    const MAX_DISPLAY_RESULTS = 9;
-    const MAX_PER_ENGINE = 10;
+    // حداکثر ۱۰ نتیجه از هر موتور
+    const RESULTS_PER_ENGINE = 10;
 
     const themeButton = document.getElementById("theme");
     const searchForm = document.getElementById("searchForm");
@@ -350,12 +310,6 @@
     const submitButton = document.getElementById("submitButton");
     const statusBox = document.getElementById("status");
     const resultsBox = document.getElementById("results");
-    const showMoreButton = document.getElementById("showMore");
-
-    let rankedResults = [];
-    let visibleCount = 0;
-    let warnings = [];
-    let searchSequence = 0;
 
     // تغییر حالت روشن و تاریک
     themeButton.addEventListener("click", () => {
@@ -365,13 +319,25 @@
 
       themeButton.textContent = dark ? "☀️" : "🌙";
 
-      document.querySelector('meta[name="theme-color"]')
+      document
+        .querySelector('meta[name="theme-color"]')
         .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
     });
 
-    // فقط بخش fragment حذف می‌شود.
-    // مسیر، اسلش انتهایی و پارامترهای query حفظ می‌شوند.
-    // www و بدون www نیز به‌طور خودکار یکی نمی‌شوند.
+    function addTextElement(parent, tag, text, className) {
+      const element = document.createElement(tag);
+      element.textContent = text || "";
+
+      if (className) {
+        element.className = className;
+      }
+
+      parent.appendChild(element);
+      return element;
+    }
+
+    // فقط بخش fragment یعنی #... حذف می‌شود.
+    // مسیر و پارامترهای URL حفظ می‌شوند تا صفحات متفاوت اشتباهاً ادغام نشوند.
     function normalizeURL(rawURL) {
       try {
         const url = new URL(rawURL);
@@ -388,322 +354,264 @@
       }
     }
 
-    function addTextElement(parent, tag, text, className) {
-      const element = document.createElement(tag);
-      element.textContent = text || "";
-
-      if (className) {
-        element.className = className;
-      }
-
-      parent.appendChild(element);
-      return element;
-    }
-
-    // هر موتور جداگانه جست‌وجو می‌شود.
-    // خطای یک موتور مانع دریافت نتایج موتورهای دیگر نیست.
-    async function searchEngine(query, engine) {
+    // درخواست مستقل برای هر موتور
+    async function searchOneEngine(query, engine) {
       const url = new URL(API);
 
       url.searchParams.set("q", query);
-      url.searchParams.set("engines", engine.name);
+      url.searchParams.set("engines", engine.id);
       url.searchParams.set("format", "json");
 
-      try {
-        const response = await fetch(url.toString(), {
-          method: "GET",
-          headers: { "Accept": "application/json" }
-        });
-
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
         }
+      });
 
-        const data = await response.json();
-
-        const results = Array.isArray(data.results)
-          ? data.results.slice(0, MAX_PER_ENGINE)
-          : [];
-
-        return {
-          engine,
-          results,
-          errors: Array.isArray(data.unresponsive_engines)
-            ? data.unresponsive_engines
-            : [],
-          error: null
-        };
-      } catch (error) {
-        console.error("Search engine error:", engine.name, error);
-
-        return {
-          engine,
-          results: [],
-          errors: [],
-          error: error.message || "خطای ارتباط"
-        };
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+
+      const data = await response.json();
+
+      const results = Array.isArray(data.results)
+        ? data.results.slice(0, RESULTS_PER_ENGINE)
+        : [];
+
+      return {
+        engine,
+        results,
+        warnings: Array.isArray(data.unresponsive_engines)
+          ? data.unresponsive_engines
+          : []
+      };
     }
 
-    // ادغام فقط با نشانی یکسان پس از حذف #fragment
-    function rankResults(engineResponses) {
-      const merged = new Map();
-      let stableOrder = 0;
+    // ادغام URLهای مشابه و جمع امتیاز موتورهای مختلف
+    function mergeAndRank(engineResponses) {
+      const resultsByURL = new Map();
 
       for (const response of engineResponses) {
         const engine = response.engine;
-        const seenInThisEngine = new Set();
 
-        response.results.forEach((result, index) => {
-          if (!result || !result.url) {
+        response.results.forEach((item, index) => {
+          const normalized = normalizeURL(item.url || "");
+
+          if (!normalized) {
             return;
           }
 
-          const key = normalizeURL(result.url);
+          let result = resultsByURL.get(normalized);
 
-          if (!key || seenInThisEngine.has(key)) {
-            return;
-          }
-
-          // یک موتور برای یک صفحه فقط یک بار امتیاز می‌دهد.
-          seenInThisEngine.add(key);
-
-          if (!merged.has(key)) {
-            merged.set(key, {
-              url: key,
-              title: result.title || key,
-              content: result.content || "",
+          if (!result) {
+            result = {
+              url: normalized,
+              title: item.title || normalized,
+              content: item.content || "",
               score: 0,
               engines: [],
-              enginePriority: 99,
-              engineRanks: [Infinity, Infinity, Infinity],
-              order: stableOrder++
-            });
+              firstRanks: {}
+            };
+
+            resultsByURL.set(normalized, result);
           }
 
-          const item = merged.get(key);
+          // هر موتور برای یک URL فقط یک بار امتیاز می‌دهد.
+          const alreadyCounted = result.engines.some(
+            existing => existing.id === engine.id
+          );
 
-          item.score += engine.weight;
-
-          if (!item.engines.includes(engine.name)) {
-            item.engines.push(engine.name);
+          if (!alreadyCounted) {
+            result.engines.push(engine);
+            result.score += engine.points;
+            result.firstRanks[engine.id] = index;
           }
 
-          const priority = ENGINES.findIndex(
-            candidate => candidate.name === engine.name
-          );
-
-          item.enginePriority = Math.min(
-            item.enginePriority,
-            priority
-          );
-
-          item.engineRanks[priority] = Math.min(
-            item.engineRanks[priority],
-            index + 1
-          );
-
+          // اگر عنوان یا توضیح قبلی خالی بود، آن را تکمیل می‌کنیم.
           if (
-            (!item.title || item.title === item.url) &&
-            result.title
+            (!result.title || result.title === result.url) &&
+            item.title
           ) {
-            item.title = result.title;
+            result.title = item.title;
           }
 
-          if (!item.content && result.content) {
-            item.content = result.content;
+          if (!result.content && item.content) {
+            result.content = item.content;
           }
         });
       }
 
-      // امتیاز بیشتر اول؛ در تساوی اولویت DDG، سپس Bing، سپس Yandex
-      return Array.from(merged.values()).sort((a, b) => {
+      // مرتب‌سازی نزولی بر اساس امتیاز کل
+      return [...resultsByURL.values()].sort((a, b) => {
         if (b.score !== a.score) {
           return b.score - a.score;
         }
 
-        if (a.enginePriority !== b.enginePriority) {
-          return a.enginePriority - b.enginePriority;
-        }
+        // در امتیاز برابر:
+        // ابتدا رتبه DuckDuckGo، سپس Bing، سپس Yandex.
+        for (const engine of ENGINES) {
+          const rankA = a.firstRanks[engine.id];
+          const rankB = b.firstRanks[engine.id];
 
-        for (let i = 0; i < ENGINES.length; i++) {
-          if (a.engineRanks[i] !== b.engineRanks[i]) {
-            return a.engineRanks[i] - b.engineRanks[i];
+          if (
+            rankA !== undefined &&
+            rankB !== undefined &&
+            rankA !== rankB
+          ) {
+            return rankA - rankB;
+          }
+
+          if (rankA !== undefined && rankB === undefined) {
+            return -1;
+          }
+
+          if (rankA === undefined && rankB !== undefined) {
+            return 1;
           }
         }
 
-        return a.order - b.order;
+        return a.url.localeCompare(b.url);
       });
     }
 
-    function renderOneResult(result) {
-      const card = document.createElement("article");
-      card.className = "result";
-
-      const heading = document.createElement("h2");
-      const link = document.createElement("a");
-
-      link.href = result.url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = result.title || result.url;
-
-      heading.appendChild(link);
-      card.appendChild(heading);
-
-      addTextElement(card, "div", result.url, "result-url");
-
-      if (result.content) {
-        addTextElement(card, "p", result.content);
-      }
-
-      const meta = document.createElement("div");
-      meta.className = "result-meta";
-
-      addTextElement(
-        meta,
-        "span",
-        "منبع: " + result.engines.map(name => {
-          const engine = ENGINES.find(item => item.name === name);
-          return engine ? engine.label : name;
-        }).join("، ")
-      );
-
-      addTextElement(
-        meta,
-        "span",
-        "امتیاز: " + result.score,
-        "score"
-      );
-
-      card.appendChild(meta);
-      resultsBox.appendChild(card);
-    }
-
-    function renderVisibleResults() {
+    function renderResults(results, warnings) {
       resultsBox.replaceChildren();
 
-      rankedResults
-        .slice(0, visibleCount)
-        .forEach(renderOneResult);
+      if (results.length === 0) {
+        statusBox.textContent =
+          "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
+      } else {
+        statusBox.textContent =
+          `${results.length} نتیجهٔ یکتا پیدا شد؛ همهٔ نتایج نمایش داده می‌شوند.`;
+      }
 
-      if (warnings.length) {
+      // بدون محدودیت ۵ یا ۹ نتیجه
+      for (const result of results) {
+        const card = document.createElement("article");
+        card.className = "result";
+
+        const heading = document.createElement("h2");
+        const link = document.createElement("a");
+
+        link.href = result.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = result.title || result.url;
+
+        heading.appendChild(link);
+        card.appendChild(heading);
+
+        addTextElement(
+          card,
+          "div",
+          result.url,
+          "result-url"
+        );
+
+        if (result.content) {
+          addTextElement(card, "p", result.content);
+        }
+
+        addTextElement(
+          card,
+          "div",
+          `امتیاز کل: ${result.score}`,
+          "result-score"
+        );
+
+        const engineNames = result.engines
+          .slice()
+          .sort((a, b) => a.priority - b.priority)
+          .map(engine => `${engine.label} (+${engine.points})`)
+          .join("، ");
+
+        addTextElement(
+          card,
+          "div",
+          `موتورهای امتیازدهنده: ${engineNames}`,
+          "result-engine"
+        );
+
+        resultsBox.appendChild(card);
+      }
+
+      if (warnings.length > 0) {
+        const uniqueWarnings = [...new Set(warnings)];
+
         addTextElement(
           resultsBox,
           "div",
-          "هشدار: " + warnings.join("؛ "),
+          "هشدار موتورهای جست‌وجو: " + uniqueWarnings.join("؛ "),
           "warning"
         );
       }
-
-      showMoreButton.hidden =
-        visibleCount >= rankedResults.length ||
-        visibleCount >= MAX_DISPLAY_RESULTS;
     }
-
-    showMoreButton.addEventListener("click", () => {
-      visibleCount = Math.min(
-        visibleCount + 4,
-        MAX_DISPLAY_RESULTS,
-        rankedResults.length
-      );
-
-      renderVisibleResults();
-
-      statusBox.textContent =
-        `${visibleCount} از ${Math.min(
-          rankedResults.length,
-          MAX_DISPLAY_RESULTS
-        )} نتیجه نمایش داده شده است.`;
-    });
 
     searchForm.addEventListener("submit", async event => {
       event.preventDefault();
 
       const query = queryInput.value.trim();
-      if (!query) return;
 
-      const thisSearch = ++searchSequence;
+      if (!query) {
+        return;
+      }
 
       submitButton.disabled = true;
-      showMoreButton.hidden = true;
       resultsBox.replaceChildren();
-
-      rankedResults = [];
-      visibleCount = 0;
-      warnings = [];
 
       statusBox.textContent =
         "در حال جست‌وجو در DuckDuckGo، Bing و Yandex... " +
-        "بار اول ممکن است سرویس Render دیر پاسخ دهد.";
+        "درخواست اول ممکن است به‌دلیل سرویس رایگان Render کمی طول بکشد.";
 
       try {
-        // اجرای هم‌زمان سه موتور مستقل
-        const responses = await Promise.all(
-          ENGINES.map(engine => searchEngine(query, engine))
+        // شکست یک موتور مانع دریافت نتایج دو موتور دیگر نمی‌شود.
+        const settled = await Promise.allSettled(
+          ENGINES.map(engine => searchOneEngine(query, engine))
         );
 
-        // اگر جست‌وجوی جدیدتری شروع شده باشد، نتیجه قدیمی نمایش داده نشود.
-        if (thisSearch !== searchSequence) return;
+        const successfulResponses = [];
+        const warnings = [];
 
-        for (const response of responses) {
-          if (response.error) {
+        settled.forEach((outcome, index) => {
+          const engine = ENGINES[index];
+
+          if (outcome.status === "fulfilled") {
+            successfulResponses.push(outcome.value);
+
+            for (const warning of outcome.value.warnings) {
+              if (Array.isArray(warning)) {
+                warnings.push(`${warning[0]}: ${warning[1]}`);
+              } else {
+                warnings.push(`${engine.label}: ${String(warning)}`);
+              }
+            }
+          } else {
             warnings.push(
-              response.engine.label + ": " + response.error
+              `${engine.label}: ${
+                outcome.reason?.message || "پاسخ دریافت نشد"
+              }`
             );
           }
+        });
 
-          for (const failed of response.errors) {
-            const name = Array.isArray(failed)
-              ? failed[0]
-              : response.engine.label;
+        const rankedResults = mergeAndRank(successfulResponses);
 
-            const reason = Array.isArray(failed)
-              ? failed[1]
-              : "پاسخ دریافت نشد";
+        renderResults(rankedResults, warnings);
 
-            warnings.push(name + ": " + reason);
-          }
-        }
-
-        // هر یک از ۱۰ نتیجهٔ هر موتور امتیاز ثابت خود را می‌گیرد.
-        // امتیاز خام SearXNG در محاسبه استفاده نمی‌شود.
-        const allRankedResults = rankResults(responses);
-
-        // الگوریتم همهٔ نتایج یکتا را رتبه‌بندی می‌کند؛
-        // رابط کاربری حداکثر ۹ نتیجه نمایش می‌دهد.
-        rankedResults = allRankedResults.slice(
-          0,
-          MAX_DISPLAY_RESULTS
-        );
-
-        visibleCount = Math.min(
-          INITIAL_LIMIT,
-          rankedResults.length
-        );
-
-        if (rankedResults.length === 0) {
-          statusBox.textContent = warnings.length
-            ? "نتیجه‌ای دریافت نشد. ممکن است موتورهای جست‌وجو موقتاً در دسترس نباشند."
-            : "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
-        } else {
+        if (successfulResponses.length === 0) {
           statusBox.textContent =
-            `${rankedResults.length} نتیجهٔ برتر پیدا شد؛ ` +
-            `ابتدا ${visibleCount} نتیجه نمایش داده می‌شود.`;
+            "هیچ‌یک از موتورهای جست‌وجو پاسخ ندادند. " +
+            "چند لحظه صبر کن و دوباره امتحان کن.";
         }
-
-        renderVisibleResults();
       } catch (error) {
         console.error("Shiraali Search error:", error);
 
-        if (thisSearch === searchSequence) {
-          statusBox.textContent =
-            "در دریافت نتایج مشکلی پیش آمد. چند لحظه صبر کن و دوباره تلاش کن.";
-        }
+        statusBox.textContent =
+          "دریافت نتایج ناموفق بود. ممکن است سرویس در دسترس نباشد " +
+          "یا مرورگر دسترسی را مسدود کرده باشد. دوباره امتحان کن.";
       } finally {
-        if (thisSearch === searchSequence) {
-          submitButton.disabled = false;
-        }
+        submitButton.disabled = false;
       }
     });
   </script>
