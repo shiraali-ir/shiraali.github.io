@@ -177,7 +177,7 @@
       padding: 2px;
     }
 
-    /* گالری تصاویر؛ عکس تمام‌کادر و فلش‌های شفاف */
+    /* گالری تصاویر */
     .wiki-image-wrap {
       display: none;
       width: 100%;
@@ -218,7 +218,6 @@
       border-radius: inherit;
     }
 
-    /* فلش ساده؛ بدون کادر، سایهٔ کادر یا پس‌زمینه */
     .gallery-arrow {
       position: absolute;
       top: 50%;
@@ -245,13 +244,11 @@
       -webkit-appearance: none;
     }
 
-    /* فلش عکس قبلی در سمت راست */
     .gallery-prev {
       right: 12px;
       left: auto;
     }
 
-    /* فلش عکس بعدی در سمت چپ */
     .gallery-next {
       left: 12px;
       right: auto;
@@ -277,7 +274,6 @@
 
     .gallery-arrow[hidden] { display: none; }
 
-    /* حذف عنوان و شمارنده از زیر تصویر */
     .wiki-caption,
     .gallery-counter {
       display: none !important;
@@ -322,7 +318,7 @@
       text-align: right;
     }
 
-    /* کارت‌های هواشناسی */
+    /* کارت هواشناسی */
     .weather-card {
       position: relative;
       width: 100%;
@@ -344,6 +340,7 @@
         rgba(35,141,224,.18),
         rgba(255,255,255,.08)
       );
+      margin-bottom: 20px;
     }
 
     .weather-illustration {
@@ -606,9 +603,10 @@
   };
 
   function normalizePlaceName(value) {
-    return value.trim().toLocaleLowerCase()
+    return String(value || "").trim().toLocaleLowerCase()
       .replace(/[يى]/g, "ی")
       .replace(/ك/g, "ک")
+      .replace(/‌/g, " ")
       .replace(/\s+/g, " ");
   }
 
@@ -637,6 +635,7 @@
   function resetGallery() {
     galleryImages = [];
     galleryIndex = 0;
+    wikiImage.onerror = null;
     wikiImage.removeAttribute("src");
     wikiImage.alt = "";
     wikiCaption.textContent = "";
@@ -661,8 +660,6 @@
     };
 
     wikiImage.src = item.src;
-
-    /* متن عنوان، منبع و شمارنده در گالری نمایش داده نمی‌شود. */
     wikiImage.alt = "تصویر مرتبط با جست‌وجو";
 
     wikiCaption.textContent = "";
@@ -777,6 +774,7 @@
             if (!src) return null;
 
             const weight = WEIGHTS[engine] || [];
+
             return {
               src,
               title: result.title || result.alt || query,
@@ -824,12 +822,25 @@
 
     const finalImages = [];
 
+    /* تصویر ویکی‌پدیا همیشه در ابتدای گالری قرار می‌گیرد. */
     if (wikiImageResult?.src) finalImages.push(wikiImageResult);
 
     for (const image of rankedImages) {
       if (finalImages.length >= 11) break;
-      if (finalImages.some(item => item.src === image.src)) continue;
-      finalImages.push(image);
+
+      const duplicate = finalImages.some(item => {
+        try {
+          const first = new URL(item.src);
+          const second = new URL(image.src);
+          first.hash = "";
+          second.hash = "";
+          return first.href === second.href;
+        } catch {
+          return item.src === image.src;
+        }
+      });
+
+      if (!duplicate) finalImages.push(image);
     }
 
     renderGallery(finalImages);
@@ -962,21 +973,67 @@
     return { domain, query: remaining || input.trim(), directUrl };
   }
 
+  /*
+   * شناسایی سخت‌گیرانهٔ مکان:
+   * - عبارت‌هایی مثل «آب‌وهوای تهران» و «weather in Paris» پشتیبانی می‌شوند.
+   * - برای جست‌وجوی عادی فقط نام دقیق مکان پذیرفته می‌شود.
+   * - عباراتی مثل «تاریخ ایران» یا «آموزش پایتون» نباید کارت هواشناسی بسازند.
+   */
+  function getWeatherPlaceQuery(query) {
+    let value = normalizePlaceName(query);
+
+    const prefixes = [
+      /^وضعیت\s+آب\s+و\s+هوای\s+/,
+      /^وضعیت\s+هوای\s+/,
+      /^پیش\s+بینی\s+آب\s+و\s+هوای\s+/,
+      /^پیش\s+بینی\s+هوای\s+/,
+      /^آب\s+و\s+هوای\s+/,
+      /^آب\s+و\s+هوا\s+/,
+      /^هواشناسی\s+/,
+      /^هوای\s+/,
+      /^weather\s+forecast\s+for\s+/i,
+      /^weather\s+in\s+/i,
+      /^weather\s+for\s+/i,
+      /^forecast\s+for\s+/i,
+      /^forecast\s+in\s+/i,
+      /^weather\s+/i
+    ];
+
+    for (const prefix of prefixes) {
+      if (prefix.test(value)) {
+        value = value.replace(prefix, "").trim();
+        break;
+      }
+    }
+
+    value = value
+      .replace(/\s+(آب\s+و\s+هوا|هواشناسی|weather|forecast)$/i, "")
+      .replace(/\s+(امروز|فردا|اکنون|الان|today|tomorrow|now)$/i, "")
+      .trim();
+
+    return value;
+  }
+
   async function findWeatherPlace(query) {
-    const normalized = normalizePlaceName(query);
-    if (KNOWN_PLACES[normalized]) return KNOWN_PLACES[normalized];
+    const placeQuery = getWeatherPlaceQuery(query);
+    if (!placeQuery) return null;
+
+    /* مکان‌های شناخته‌شده فقط با تطبیق کامل پذیرفته می‌شوند. */
+    if (KNOWN_PLACES[placeQuery]) return KNOWN_PLACES[placeQuery];
 
     if (
-      normalized.length > 45 ||
-      normalized.split(" ").length > 4 ||
-      /https?:|www\.|site:|twitter|youtube|instagram|telegram|تلگرام|توییتر|اینستاگرام/i.test(normalized)
-    ) return null;
+      placeQuery.length > 45 ||
+      placeQuery.split(" ").length > 4 ||
+      /https?:|www\.|site:|twitter|youtube|instagram|telegram|تلگرام|توییتر|اینستاگرام/i.test(placeQuery)
+    ) {
+      return null;
+    }
 
     for (const language of ["fa", "en"]) {
       try {
         const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
-        url.searchParams.set("name", query.trim());
-        url.searchParams.set("count", "5");
+        url.searchParams.set("name", placeQuery);
+        url.searchParams.set("count", "10");
         url.searchParams.set("language", language);
         url.searchParams.set("format", "json");
 
@@ -985,19 +1042,22 @@
 
         const data = await response.json();
         const places = data.results || [];
-        if (!places.length) continue;
+        const queryNorm = normalizePlaceName(placeQuery);
 
-        const queryNorm = normalizePlaceName(query);
-        const place = places.find(item => {
-          const name = normalizePlaceName(item.name || "");
-          return name === queryNorm ||
-            name.includes(queryNorm) ||
-            queryNorm.includes(name);
-        });
+        /*
+         * مهم: نتیجهٔ مشابه یا بخشی از نام پذیرفته نمی‌شود.
+         * نام مکان باید دقیقاً با عبارت مکان جست‌وجوشده برابر باشد.
+         */
+        const place = places.find(item =>
+          normalizePlaceName(item.name || "") === queryNorm
+        );
 
         if (!place) continue;
+
         if (!Number.isFinite(place.latitude) ||
-            !Number.isFinite(place.longitude)) continue;
+            !Number.isFinite(place.longitude)) {
+          continue;
+        }
 
         return {
           name: place.name,
@@ -1066,6 +1126,9 @@
     return item;
   }
 
+  /*
+   * هواشناسی در یک کارت یکپارچه نمایش داده می‌شود.
+   */
   function renderWeatherCards(data) {
     if (!data?.current) return;
 
@@ -1084,8 +1147,8 @@
     const sunrise = daily.sunrise?.[0];
     const sunset = daily.sunset?.[0];
 
-    const heroCard = document.createElement("article");
-    heroCard.className = "weather-card";
+    const card = document.createElement("article");
+    card.className = "weather-card";
 
     const hero = document.createElement("div");
     hero.className = "weather-hero";
@@ -1103,13 +1166,9 @@
       `زمان محلی: ${String(current.time || "").replace("T", " ")}`,
       "weather-updated");
 
-    heroCard.appendChild(hero);
-    resultsBox.appendChild(heroCard);
+    card.appendChild(hero);
 
-    const detailsCard = document.createElement("article");
-    detailsCard.className = "weather-card";
-
-    addText(detailsCard, "h2",
+    addText(card, "h2",
       `جزئیات وضعیت آب‌وهوا در ${place.name}`,
       "weather-details-title");
 
@@ -1132,7 +1191,7 @@
     grid.appendChild(weatherMetric("🌡️ بیشینه دمای امروز", formatNumber(high, "°C")));
     grid.appendChild(weatherMetric("🌡️ کمینه دمای امروز", formatNumber(low, "°C")));
 
-    detailsCard.appendChild(grid);
+    card.appendChild(grid);
 
     const source = document.createElement("span");
     source.className = "weather-source";
@@ -1145,8 +1204,8 @@
     sourceLink.textContent = "Open-Meteo";
 
     source.appendChild(sourceLink);
-    detailsCard.appendChild(source);
-    resultsBox.appendChild(detailsCard);
+    card.appendChild(source);
+    resultsBox.appendChild(card);
   }
 
   async function searchEngine(query, engine, category = null) {
@@ -1266,6 +1325,10 @@
   function renderVisible() {
     resultsBox.replaceChildren();
 
+    /*
+     * چون گالری بیرون از #results و بالاتر از آن در HTML قرار دارد،
+     * تصاویر بالاتر از هواشناسی و نتایج متنی نمایش داده می‌شوند.
+     */
     if (weatherData) renderWeatherCards(weatherData);
 
     preparedResults.slice(0, visibleCount).forEach(renderOneResult);
@@ -1316,64 +1379,83 @@
     weatherData = null;
     resetGallery();
 
-    statusBox.textContent = "در حال دریافت تصاویر مرتبط...";
+    statusBox.textContent = "در حال دریافت تصاویر و نتایج جست‌وجو...";
 
-    try {
-      const wikiPromise = loadWikipediaImage(searchQuery, thisSearch);
+    /*
+     * عملیات مستقل هم‌زمان آغاز می‌شوند:
+     * ۱. دریافت تصویر ویکی‌پدیا
+     * ۲. دریافت تصاویر سه موتور جست‌وجو
+     * ۳. شناسایی مکان و دریافت هواشناسی، در صورت مرتبط بودن
+     * ۴. دریافت نتایج متنی
+     */
 
-      let weatherPlace = null;
+    const wikiPromise = loadWikipediaImage(searchQuery, thisSearch);
 
-      if (!domain && !target.directUrl) {
-        statusBox.textContent =
-          "در حال شناسایی موضوع و مکان جغرافیایی احتمالی...";
-
-        weatherPlace = await findWeatherPlace(originalQuery);
-      }
-
-      if (thisSearch !== searchSequence) return;
-
-      const wikiImageResult = await wikiPromise;
-      if (thisSearch !== searchSequence) return;
-
-      statusBox.textContent = "در حال گردآوری و رتبه‌بندی تصاویر...";
-      await collectImageResults(searchQuery, thisSearch, wikiImageResult);
-
-      if (thisSearch !== searchSequence) return;
-
-      if (weatherPlace) {
-        statusBox.textContent =
-          `در حال دریافت وضعیت آب‌وهوا برای ${weatherPlace.name}...`;
-
-        try {
-          weatherData = await fetchWeather(weatherPlace);
-        } catch (error) {
-          console.warn("Weather request failed:", error);
-          weatherData = null;
-        }
+    const imagesPromise = (async () => {
+      try {
+        const wikiImageResult = await wikiPromise;
 
         if (thisSearch !== searchSequence) return;
+
+        /* اگر تصویر ویکی‌پدیا زودتر رسید، همان لحظه نمایش داده شود. */
+        if (wikiImageResult?.src) {
+          renderGallery([wikiImageResult]);
+        }
+
+        await collectImageResults(
+          searchQuery,
+          thisSearch,
+          wikiImageResult
+        );
+      } catch (error) {
+        console.warn("Image collection failed:", error);
       }
+    })();
 
-      statusBox.textContent = domain
-        ? `ابتدا در ${domain} جست‌وجو می‌کنیم، سپس نتایج عمومی را بررسی می‌کنیم...`
-        : weatherData
-          ? "اطلاعات هواشناسی دریافت شد؛ در حال تکمیل نتایج جست‌وجو..."
-          : "در حال جست‌وجو در DuckDuckGo، Bing و Yandex...";
+    const weatherPromise = (async () => {
+      if (domain || target.directUrl) return;
 
+      try {
+        const weatherPlace = await findWeatherPlace(originalQuery);
+
+        if (thisSearch !== searchSequence || !weatherPlace) return;
+
+        const data = await fetchWeather(weatherPlace);
+
+        if (thisSearch !== searchSequence) return;
+
+        weatherData = data;
+        renderVisible();
+
+        if (!preparedResults.length) {
+          statusBox.textContent =
+            "اطلاعات هواشناسی دریافت شد؛ در حال تکمیل جست‌وجو...";
+        }
+      } catch (error) {
+        console.warn("Weather request failed:", error);
+      }
+    })();
+
+    try {
+      /*
+       * نتایج متنی منتظر تمام‌شدن تصاویر یا هواشناسی نمی‌مانند.
+       */
       const groups = [];
 
       if (domain) {
+        statusBox.textContent =
+          `در حال جست‌وجو در ${domain} و بررسی نتایج عمومی...`;
+
         const siteQuery = `site:${domain} ${searchQuery}`.trim();
 
         const siteSettled = await Promise.all(
           ENGINES.map(async engine => {
             try {
-              return { engine, data: await searchEngine(siteQuery, engine) };
+              return {
+                engine,
+                data: await searchEngine(siteQuery, engine)
+              };
             } catch (error) {
-              currentWarnings.push({
-                engine: `${engine} (جست‌وجوی سایت)`,
-                reason: error.message
-              });
               return { engine, error };
             }
           })
@@ -1382,7 +1464,13 @@
         if (thisSearch !== searchSequence) return;
 
         for (const item of siteSettled) {
-          if (!item.data) continue;
+          if (!item.data) {
+            currentWarnings.push({
+              engine: `${item.engine} (جست‌وجوی سایت)`,
+              reason: item.error?.message || "پاسخ دریافت نشد"
+            });
+            continue;
+          }
 
           groups.push({
             engine: item.engine,
@@ -1401,15 +1489,16 @@
         }
       }
 
+      statusBox.textContent = "در حال دریافت نتایج متنی...";
+
       const generalSettled = await Promise.all(
         ENGINES.map(async engine => {
           try {
-            return { engine, data: await searchEngine(searchQuery, engine) };
-          } catch (error) {
-            currentWarnings.push({
+            return {
               engine,
-              reason: error.message || "پاسخ دریافت نشد"
-            });
+              data: await searchEngine(searchQuery, engine)
+            };
+          } catch (error) {
             return { engine, error };
           }
         })
@@ -1418,7 +1507,13 @@
       if (thisSearch !== searchSequence) return;
 
       for (const item of generalSettled) {
-        if (!item.data) continue;
+        if (!item.data) {
+          currentWarnings.push({
+            engine: item.engine,
+            reason: item.error?.message || "پاسخ دریافت نشد"
+          });
+          continue;
+        }
 
         groups.push({
           engine: item.engine,
@@ -1436,39 +1531,51 @@
         }
       }
 
+      if (thisSearch !== searchSequence) return;
+
       preparedResults = mergeAndRank(groups, target.directUrl);
       visibleCount = Math.min(INITIAL_LIMIT, preparedResults.length);
 
-      if (preparedResults.length) {
-        statusBox.textContent = "";
-      } else if (weatherData) {
-        statusBox.textContent =
-          "اطلاعات هواشناسی نمایش داده شد؛ نتیجهٔ دیگری پیدا نشد.";
-      } else {
-        statusBox.textContent =
-          "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
-      }
-
       renderVisible();
 
-      if (!preparedResults.length && currentWarnings.length) {
-        statusBox.textContent = weatherData
-          ? "هواشناسی نمایش داده شد، اما موتورهای جست‌وجو پاسخ ندادند."
-          : "موتورهای جست‌وجو پاسخ ندادند. چند لحظه صبر کن و دوباره امتحان کن.";
+      if (preparedResults.length) {
+        statusBox.textContent = "";
+      } else if (currentWarnings.length) {
+        statusBox.textContent =
+          "موتورهای جست‌وجو پاسخ ندادند. چند لحظه صبر کن و دوباره امتحان کن.";
+      } else {
+        statusBox.textContent =
+          weatherData
+            ? "اطلاعات هواشناسی نمایش داده شد؛ نتیجهٔ متنی دیگری پیدا نشد."
+            : "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
       }
     } catch (error) {
       console.error("Shiraali Search error:", error);
 
-      statusBox.textContent = weatherData
-        ? "اطلاعات هواشناسی نمایش داده شد، اما جست‌وجوی عمومی با خطا مواجه شد."
-        : "دریافت نتایج ناموفق بود. چند لحظه صبر کن و دوباره امتحان کن.";
+      if (thisSearch === searchSequence) {
+        statusBox.textContent =
+          weatherData
+            ? "اطلاعات هواشناسی نمایش داده شد، اما جست‌وجوی عمومی با خطا مواجه شد."
+            : "دریافت نتایج ناموفق بود. چند لحظه صبر کن و دوباره امتحان کن.";
 
-      renderVisible();
+        renderVisible();
+      }
     } finally {
+      /*
+       * عملیات تصویری و هواشناسی مستقل‌اند؛ لازم نیست برای فعال‌شدن
+       * دکمهٔ جست‌وجو منتظر تمام‌شدن آن‌ها بمانیم.
+       */
       if (thisSearch === searchSequence) {
         submitButton.disabled = false;
       }
     }
+
+    /*
+     * خطاهای این دو عملیات جداگانه مدیریت می‌شوند و مانع نمایش
+     * نتایج متنی نمی‌شوند.
+     */
+    void imagesPromise;
+    void weatherPromise;
   });
 </script>
 </body>
