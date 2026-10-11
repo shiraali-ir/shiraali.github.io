@@ -77,7 +77,6 @@
       -webkit-appearance: none;
     }
 
-    /* عرض محتوای دسکتاپ: ۶۰ درصد صفحه */
     main {
       width: 60%;
       margin: 0 auto;
@@ -161,7 +160,6 @@
       width: 100%;
     }
 
-    /* کارت نتیجه با فضای کافی برای آیکون */
     .result {
       position: relative;
       width: 100%;
@@ -173,7 +171,6 @@
       overflow-wrap: anywhere;
     }
 
-    /* آیکون سایت در گوشه بالای سمت چپ */
     .result-site-icon {
       position: absolute;
       top: 14px;
@@ -271,7 +268,6 @@
       display: none;
     }
 
-    /* تبلت و صفحه‌های کوچک‌تر */
     @media (max-width: 700px) {
       main {
         width: 92%;
@@ -385,6 +381,20 @@
     yandex: [1, 1, 1, 1, 1]
   };
 
+  const SITE_ALIASES = [
+    { domain: "x.com", names: ["twitter", "توییتر", "تویتر", "x.com"] },
+    { domain: "youtube.com", names: ["youtube", "یوتیوب", "youtube.com"] },
+    { domain: "instagram.com", names: ["instagram", "اینستاگرام", "instagram.com"] },
+    { domain: "t.me", names: ["telegram", "تلگرام", "t.me"] },
+    { domain: "wikipedia.org", names: ["wikipedia", "ویکی‌پدیا", "ویکی پدیا", "wikipedia.org"] },
+    { domain: "facebook.com", names: ["facebook", "فیسبوک", "فیس‌بوک"] },
+    { domain: "reddit.com", names: ["reddit", "ردیت"] },
+    { domain: "github.com", names: ["github", "گیت‌هاب", "گیت هاب"] },
+    { domain: "linkedin.com", names: ["linkedin", "لینکدین"] },
+    { domain: "tiktok.com", names: ["tiktok", "تیک‌تاک", "تیک تاک"] },
+    { domain: "aparat.com", names: ["aparat", "آپارات"] }
+  ];
+
   const themeButton = document.getElementById("theme");
   const searchForm = document.getElementById("searchForm");
   const queryInput = document.getElementById("query");
@@ -427,9 +437,7 @@
     wikiImage.alt = "";
     wikiImageWrap.classList.remove("visible");
 
-    const languages = ["fa", "en"];
-
-    for (const lang of languages) {
+    for (const lang of ["fa", "en"]) {
       try {
         const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
 
@@ -445,14 +453,11 @@
         api.searchParams.set("origin", "*");
 
         const response = await fetch(api.toString());
-
         if (!response.ok) continue;
 
         const data = await response.json();
         const pages = Object.values(data.query?.pages || {});
-        const image = pages.find(
-          page => page.thumbnail?.source
-        )?.thumbnail?.source;
+        const image = pages.find(page => page.thumbnail?.source)?.thumbnail?.source;
 
         if (image) {
           wikiImage.src = image;
@@ -516,28 +521,22 @@
     }
   }
 
-  /* ساخت آیکون مخصوص دامنه هر نتیجه */
   function createSiteIcon(url) {
-    const icon = document.createElement("img");
     const host = hostOf(url);
+    if (!host) return null;
 
-    if (!host) {
-      return null;
-    }
-
+    const icon = document.createElement("img");
     icon.className = "result-site-icon";
     icon.alt = "";
     icon.setAttribute("aria-hidden", "true");
     icon.loading = "lazy";
     icon.referrerPolicy = "no-referrer";
 
-    /* ابتدا دریافت آیکون از سرویس Google */
     icon.src =
       "https://www.google.com/s2/favicons?domain=" +
       encodeURIComponent(host) +
       "&sz=64";
 
-    /* در صورت خطا، تلاش با سرویس جایگزین */
     icon.onerror = function () {
       if (this.dataset.fallbackTried !== "yes") {
         this.dataset.fallbackTried = "yes";
@@ -551,27 +550,210 @@
     return icon;
   }
 
+  function detectTarget(input) {
+    let remaining = input.trim();
+    let directUrl = null;
+    let domain = null;
+
+    const urlMatch = remaining.match(
+      /(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s]*)?/i
+    );
+
+    if (urlMatch) {
+      const candidate = urlMatch[0].replace(/[),؛،.!?]+$/, "");
+      const normalizedCandidate = /^https?:\/\//i.test(candidate)
+        ? candidate
+        : "https://" + candidate;
+
+      try {
+        const parsed = new URL(normalizedCandidate);
+
+        if (parsed.hostname.includes(".")) {
+          directUrl = parsed.href;
+          domain = parsed.hostname.toLowerCase().replace(/^www\./, "");
+          remaining = remaining.replace(urlMatch[0], " ").trim();
+        }
+      } catch {
+        // اگر آدرس معتبر نبود، تشخیص نام سایت ادامه پیدا می‌کند.
+      }
+    }
+
+    if (!domain) {
+      for (const site of SITE_ALIASES) {
+        const aliases = [...site.names].sort((a, b) => b.length - a.length);
+
+        for (const alias of aliases) {
+          const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const pattern = new RegExp(
+            `(^|\\s)${escaped}(?=$|\\s|[.,،؛])`,
+            "i"
+          );
+
+          if (pattern.test(remaining)) {
+            domain = site.domain;
+            remaining = remaining.replace(pattern, " ").trim();
+            break;
+          }
+        }
+
+        if (domain) break;
+      }
+    }
+
+    remaining = remaining
+      .replace(/\s+/g, " ")
+      .replace(/^[\s،,؛:]+|[\s،,؛:]+$/g, "")
+      .trim();
+
+    if (!remaining && directUrl) {
+      try {
+        const path = new URL(directUrl).pathname
+          .split("/")
+          .filter(Boolean)
+          .pop();
+
+        if (path) {
+          remaining = decodeURIComponent(path).replace(/[-_]/g, " ");
+        }
+      } catch {}
+    }
+
+    return {
+      domain,
+      query: remaining || input.trim(),
+      directUrl
+    };
+  }
+
+  async function searchEngine(query, engine) {
+    const u = new URL(API);
+
+    u.searchParams.set("q", query);
+    u.searchParams.set("engines", engine);
+    u.searchParams.set("format", "json");
+
+    const res = await fetch(u.toString(), {
+      headers: { Accept: "application/json" }
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    return res.json();
+  }
+
+  function mergeAndRank(groups, directUrl) {
+    const merged = new Map();
+    let stable = 0;
+
+    for (const group of groups) {
+      if (!group.data) continue;
+
+      const list = Array.isArray(group.data.results)
+        ? group.data.results
+        : [];
+
+      list.forEach((r, index) => {
+        const url = normalizedUrl(r.url);
+        if (!url) return;
+
+        let item = merged.get(url);
+
+        if (!item) {
+          item = {
+            ...r,
+            url,
+            title: typeof r.title === "string" ? r.title.trim() : "",
+            content: r.content || "",
+            score: 0,
+            engines: [],
+            ranks: {},
+            priority: group.priority,
+            _stable: stable++
+          };
+
+          merged.set(url, item);
+        } else {
+          item.priority = Math.max(item.priority, group.priority);
+        }
+
+        if (!item.engines.includes(group.engine)) {
+          item.engines.push(group.engine);
+          item.ranks[group.engine] = index + 1;
+
+          const rank = index + 1;
+
+          if (rank <= 5) {
+            item.score += WEIGHTS[group.engine][rank - 1];
+          }
+        }
+
+        if (!item.title && r.title) {
+          item.title = String(r.title).trim();
+        }
+
+        if (!item.content && r.content) {
+          item.content = r.content;
+        }
+      });
+    }
+
+    if (directUrl) {
+      const url = normalizedUrl(directUrl);
+
+      if (url && !merged.has(url)) {
+        merged.set(url, {
+          url,
+          title: "",
+          content: "",
+          score: 0,
+          engines: ["آدرس مستقیم"],
+          ranks: {},
+          priority: 3,
+          _stable: -1
+        });
+      } else if (url && merged.has(url)) {
+        merged.get(url).priority = 3;
+      }
+    }
+
+    return [...merged.values()]
+      .sort((a, b) =>
+        b.priority - a.priority ||
+        b.score - a.score ||
+        (a.ranks.duckduckgo || Infinity) -
+          (b.ranks.duckduckgo || Infinity) ||
+        (a.ranks.bing || Infinity) -
+          (b.ranks.bing || Infinity) ||
+        (a.ranks.yandex || Infinity) -
+          (b.ranks.yandex || Infinity) ||
+        a._stable - b._stable
+      )
+      .slice(0, MAX_RESULTS);
+  }
+
   function renderOneResult(r) {
     const card = document.createElement("article");
     card.className = "result";
 
     const siteIcon = createSiteIcon(r.url);
+    if (siteIcon) card.appendChild(siteIcon);
 
-    if (siteIcon) {
-      card.appendChild(siteIcon);
-    }
+    const heading = document.createElement("h2");
+    const link = document.createElement("a");
 
-    /* فقط عنوان لینک نمایش داده می‌شود؛ آدرس خام نمایش داده نمی‌شود */
-    const h = document.createElement("h2");
-    const a = document.createElement("a");
+    link.href = r.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
 
-    a.href = r.url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = r.title || r.url;
+    const title = typeof r.title === "string" ? r.title.trim() : "";
 
-    h.appendChild(a);
-    card.appendChild(h);
+    // عنوان موجود: فقط عنوان. عنوان خالی: نشانی لینک.
+    link.textContent = title || r.url;
+
+    heading.appendChild(link);
+    card.appendChild(heading);
 
     if (r.content) {
       addText(card, "p", r.content);
@@ -580,7 +762,7 @@
     addText(
       card,
       "span",
-      `امتیاز: ${r.score} | موتورهای مؤثر: ${r.engines.join(", ")}`,
+      `امتیاز: ${r.score} | منابع: ${r.engines.join(", ")}`,
       "result-engine"
     );
 
@@ -595,14 +777,14 @@
       .forEach(renderOneResult);
 
     if (currentWarnings.length) {
-      const msgs = currentWarnings.map(
-        x => `${x.engine}: ${x.reason}`
+      const messages = currentWarnings.map(
+        item => `${item.engine}: ${item.reason}`
       );
 
       addText(
         resultsBox,
         "div",
-        "برخی موتورهای جست‌وجو پاسخ نداده‌اند: " + msgs.join("؛ "),
+        "برخی جست‌وجوها پاسخ نداده‌اند: " + messages.join("؛ "),
         "warning"
       );
     }
@@ -623,139 +805,68 @@
     statusBox.textContent = "";
   });
 
-  async function searchEngine(query, engine) {
-    const u = new URL(API);
+  searchForm.addEventListener("submit", async event => {
+    event.preventDefault();
 
-    u.searchParams.set("q", query);
-    u.searchParams.set("engines", engine);
-    u.searchParams.set("format", "json");
+    const originalQuery = queryInput.value.trim();
+    if (!originalQuery) return;
 
-    const res = await fetch(u.toString(), {
-      headers: { Accept: "application/json" }
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    return res.json();
-  }
-
-  function mergeAndRank(engineData) {
-    const merged = new Map();
-    let stable = 0;
-
-    for (const engine of ENGINES) {
-      const data = engineData[engine];
-
-      if (!data) continue;
-
-      const list = Array.isArray(data.results)
-        ? data.results
-        : [];
-
-      list.forEach((r, index) => {
-        const url = normalizedUrl(r.url);
-
-        if (!url) return;
-
-        let item = merged.get(url);
-
-        if (!item) {
-          item = {
-            ...r,
-            url,
-            score: 0,
-            engines: [],
-            ranks: {},
-            _stable: stable++
-          };
-
-          merged.set(url, item);
-        }
-
-        if (item.engines.includes(engine)) return;
-
-        item.engines.push(engine);
-        item.ranks[engine] = index + 1;
-
-        const rank = index + 1;
-
-        if (rank <= 5) {
-          item.score += WEIGHTS[engine][rank - 1];
-        }
-
-        if (!item.title && r.title) {
-          item.title = r.title;
-        }
-
-        if (!item.content && r.content) {
-          item.content = r.content;
-        }
-      });
-    }
-
-    return [...merged.values()]
-      .sort((a, b) =>
-        b.score - a.score ||
-        (a.ranks.duckduckgo || Infinity) -
-          (b.ranks.duckduckgo || Infinity) ||
-        (a.ranks.bing || Infinity) -
-          (b.ranks.bing || Infinity) ||
-        (a.ranks.yandex || Infinity) -
-          (b.ranks.yandex || Infinity) ||
-        a._stable - b._stable
-      )
-      .slice(0, MAX_RESULTS);
-  }
-
-  searchForm.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const query = queryInput.value.trim();
-
-    if (!query) return;
+    const target = detectTarget(originalQuery);
+    const searchQuery = target.query;
+    const domain = target.domain;
 
     submitButton.disabled = true;
     showMoreButton.hidden = true;
     resultsBox.replaceChildren();
 
-    wikiImage.removeAttribute("src");
-    wikiImageWrap.classList.remove("visible");
-
-    loadWikipediaImage(query);
-
     preparedResults = [];
     visibleCount = 0;
     currentWarnings = [];
 
-    statusBox.textContent =
-      "در حال جست‌وجو در DuckDuckGo، Bing و Yandex... بار اول ممکن است سرویس Render کمی دیر پاسخ دهد.";
+    wikiImage.removeAttribute("src");
+    wikiImageWrap.classList.remove("visible");
+
+    loadWikipediaImage(searchQuery);
+
+    statusBox.textContent = domain
+      ? `ابتدا در ${domain} جست‌وجو می‌کنیم، سپس نتایج عمومی را بررسی می‌کنیم...`
+      : "در حال جست‌وجو در DuckDuckGo، Bing و Yandex...";
 
     try {
-      const settled = await Promise.all(
-        ENGINES.map(async engine => {
-          try {
-            return {
-              engine,
-              data: await searchEngine(query, engine)
-            };
-          } catch (err) {
-            return {
-              engine,
-              error: err.message
-            };
-          }
-        })
-      );
+      const groups = [];
 
-      const engineData = {};
+      // مرحله اول: جست‌وجوی محدود به سایت انتخاب‌شده.
+      if (domain) {
+        const siteQuery = `site:${domain} ${searchQuery}`.trim();
 
-      for (const item of settled) {
-        if (item.data) {
-          engineData[item.engine] = item.data;
+        const siteSettled = await Promise.all(
+          ENGINES.map(async engine => {
+            try {
+              return {
+                engine,
+                data: await searchEngine(siteQuery, engine)
+              };
+            } catch (error) {
+              currentWarnings.push({
+                engine: `${engine} (جست‌وجوی سایت)`,
+                reason: error.message
+              });
 
-          for (const warning of (item.data.unresponsive_engines || [])) {
+              return { engine, error };
+            }
+          })
+        );
+
+        for (const item of siteSettled) {
+          if (!item.data) continue;
+
+          groups.push({
+            engine: item.engine,
+            data: item.data,
+            priority: 2
+          });
+
+          for (const warning of item.data.unresponsive_engines || []) {
             currentWarnings.push({
               engine: item.engine,
               reason: Array.isArray(warning)
@@ -763,15 +874,48 @@
                 : String(warning)
             });
           }
-        } else {
+        }
+      }
+
+      // مرحله دوم: جست‌وجوی عمومی در سه موتور فعلی.
+      const generalSettled = await Promise.all(
+        ENGINES.map(async engine => {
+          try {
+            return {
+              engine,
+              data: await searchEngine(searchQuery, engine)
+            };
+          } catch (error) {
+            currentWarnings.push({
+              engine,
+              reason: error.message || "پاسخ دریافت نشد"
+            });
+
+            return { engine, error };
+          }
+        })
+      );
+
+      for (const item of generalSettled) {
+        if (!item.data) continue;
+
+        groups.push({
+          engine: item.engine,
+          data: item.data,
+          priority: 1
+        });
+
+        for (const warning of item.data.unresponsive_engines || []) {
           currentWarnings.push({
             engine: item.engine,
-            reason: item.error || "پاسخ دریافت نشد"
+            reason: Array.isArray(warning)
+              ? warning.join(": ")
+              : String(warning)
           });
         }
       }
 
-      preparedResults = mergeAndRank(engineData);
+      preparedResults = mergeAndRank(groups, target.directUrl);
       visibleCount = Math.min(
         INITIAL_LIMIT,
         preparedResults.length
@@ -787,11 +931,11 @@
         statusBox.textContent =
           "موتورهای جست‌وجو پاسخ ندادند. چند لحظه صبر کن و دوباره امتحان کن.";
       }
-    } catch (err) {
-      console.error("Shiraali Search error:", err);
+    } catch (error) {
+      console.error("Shiraali Search error:", error);
 
       statusBox.textContent =
-        "دریافت نتایج ناموفق بود. ممکن است سرویس در حال بیدار شدن باشد یا دسترسی مرورگر مسدود شده باشد. چند لحظه صبر کن و دوباره امتحان کن.";
+        "دریافت نتایج ناموفق بود. چند لحظه صبر کن و دوباره امتحان کن.";
     } finally {
       submitButton.disabled = false;
     }
