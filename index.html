@@ -177,16 +177,16 @@
       padding: 2px;
     }
 
-    /* گالری تصاویر */
+    /* گالری تصاویر؛ عکس تمام‌کادر و فلش‌های شفاف */
     .wiki-image-wrap {
       display: none;
       width: 100%;
       margin: 18px 0 22px;
-      padding: 12px;
+      padding: 0;
       text-align: center;
       border: 1px solid var(--border);
       border-radius: 30px;
-      background: var(--card);
+      background: transparent;
       overflow: hidden;
     }
 
@@ -198,46 +198,76 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      min-height: 180px;
+      height: clamp(260px, 50vw, 520px);
+      min-height: 260px;
+      overflow: hidden;
+      border-radius: inherit;
     }
 
     .wiki-image {
       display: block;
-      width: auto;
-      max-width: calc(100% - 76px);
-      max-height: 360px;
-      object-fit: contain;
-      margin: 0 auto;
-      border-radius: 22px;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      object-fit: cover;
+      object-position: center;
+      margin: 0;
+      border-radius: inherit;
     }
 
+    /* فلش ساده؛ بدون کادر، سایهٔ کادر یا پس‌زمینه */
     .gallery-arrow {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
       z-index: 2;
-      width: 42px;
-      height: 54px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--button);
-      color: var(--text);
-      font-size: 34px;
+      width: 44px;
+      height: 58px;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 48px;
+      font-weight: 400;
       line-height: 1;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      text-shadow: 0 1px 5px rgba(0,0,0,.65);
+      appearance: none;
+      -webkit-appearance: none;
     }
 
-    /* فلش قبلی در سمت راست و فلش بعدی در سمت چپ */
-    .gallery-prev { right: 5px; }
-    .gallery-next { left: 5px; }
+    /* فلش عکس قبلی در سمت راست */
+    .gallery-prev {
+      right: 12px;
+      left: auto;
+    }
 
-    .gallery-arrow:hover {
-      background: var(--accent);
+    /* فلش عکس بعدی در سمت چپ */
+    .gallery-next {
+      left: 12px;
+      right: auto;
+    }
+
+    .gallery-arrow:hover,
+    .gallery-arrow:focus,
+    .gallery-arrow:active {
+      background: transparent;
+      box-shadow: none;
       color: #fff;
+    }
+
+    .gallery-arrow:focus-visible {
+      outline: 1px solid rgba(255,255,255,.7);
+      outline-offset: -5px;
     }
 
     .gallery-arrow:disabled {
@@ -247,7 +277,7 @@
 
     .gallery-arrow[hidden] { display: none; }
 
-    /* عنوان و شمارنده عکس‌ها نمایش داده نمی‌شوند */
+    /* حذف عنوان و شمارنده از زیر تصویر */
     .wiki-caption,
     .gallery-counter {
       display: none !important;
@@ -414,20 +444,34 @@
       .logo { margin-bottom: 24px; }
       .search-box { min-height: 52px; }
 
+      .wiki-gallery {
+        height: 300px;
+        min-height: 240px;
+      }
+
       .wiki-image {
-        max-width: calc(100% - 64px);
-        max-height: 280px;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        object-fit: cover;
       }
 
       .gallery-arrow {
-        width: 34px;
-        height: 46px;
-        font-size: 29px;
+        width: 38px;
+        height: 50px;
+        font-size: 42px;
       }
 
-      /* همان جابه‌جایی فلش‌ها در موبایل */
-      .gallery-prev { right: 2px; }
-      .gallery-next { left: 2px; }
+      .gallery-prev {
+        right: 6px;
+        left: auto;
+      }
+
+      .gallery-next {
+        left: 6px;
+        right: auto;
+      }
 
       .result { padding: 14px 14px 14px 48px; }
 
@@ -483,8 +527,8 @@
         <button id="galleryNext" class="gallery-arrow gallery-next"
           type="button" aria-label="عکس بعدی" title="عکس بعدی" hidden>›</button>
       </div>
-      <div id="wikiCaption" class="wiki-caption"></div>
-      <div id="galleryCounter" class="gallery-counter"></div>
+      <div id="wikiCaption" class="wiki-caption" aria-hidden="true"></div>
+      <div id="galleryCounter" class="gallery-counter" aria-hidden="true"></div>
     </div>
 
     <section id="results" aria-label="نتایج جست‌وجو"></section>
@@ -618,8 +662,9 @@
 
     wikiImage.src = item.src;
 
-    /* زیر عکس هیچ نوشته‌ای نمایش داده نمی‌شود */
-    wikiImage.alt = "";
+    /* متن عنوان، منبع و شمارنده در گالری نمایش داده نمی‌شود. */
+    wikiImage.alt = "تصویر مرتبط با جست‌وجو";
+
     wikiCaption.textContent = "";
     galleryCounter.textContent = "";
 
@@ -642,7 +687,8 @@
 
   galleryPrev.addEventListener("click", () => {
     if (galleryImages.length < 2) return;
-    galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+    galleryIndex =
+      (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
     showGalleryImage();
   });
 
@@ -810,7 +856,8 @@
       }
 
       [...u.searchParams.keys()].forEach(k => {
-        if (/^utm_/i.test(k) || ["gclid", "fbclid"].includes(k.toLowerCase())) {
+        if (/^utm_/i.test(k) ||
+            ["gclid", "fbclid"].includes(k.toLowerCase())) {
           u.searchParams.delete(k);
         }
       });
@@ -1004,7 +1051,8 @@
   }
 
   function formatNumber(value, suffix = "") {
-    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+    if (value === null || value === undefined ||
+        !Number.isFinite(Number(value))) {
       return "اطلاعات موجود نیست";
     }
     return `${value}${suffix}`;
@@ -1200,7 +1248,8 @@
     link.href = r.url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = (typeof r.title === "string" ? r.title.trim() : "") || r.url;
+    link.textContent =
+      (typeof r.title === "string" ? r.title.trim() : "") || r.url;
 
     heading.appendChild(link);
     card.appendChild(heading);
