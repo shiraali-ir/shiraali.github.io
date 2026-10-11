@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -231,8 +231,9 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.08);
     }
 
-    .gallery-prev { left: 5px; }
-    .gallery-next { right: 5px; }
+    /* فلش قبلی در سمت راست و فلش بعدی در سمت چپ */
+    .gallery-prev { right: 5px; }
+    .gallery-next { left: 5px; }
 
     .gallery-arrow:hover {
       background: var(--accent);
@@ -246,19 +247,10 @@
 
     .gallery-arrow[hidden] { display: none; }
 
-    .wiki-caption {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.8;
-      overflow-wrap: anywhere;
-    }
-
+    /* عنوان و شمارنده عکس‌ها نمایش داده نمی‌شوند */
+    .wiki-caption,
     .gallery-counter {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 12px;
-      direction: ltr;
+      display: none !important;
     }
 
     .result h2 {
@@ -433,8 +425,9 @@
         font-size: 29px;
       }
 
-      .gallery-prev { left: 2px; }
-      .gallery-next { right: 2px; }
+      /* همان جابه‌جایی فلش‌ها در موبایل */
+      .gallery-prev { right: 2px; }
+      .gallery-next { left: 2px; }
 
       .result { padding: 14px 14px 14px 48px; }
 
@@ -624,11 +617,11 @@
     };
 
     wikiImage.src = item.src;
-    wikiImage.alt = `تصویر ${galleryIndex + 1}: ${item.title || "تصویر مرتبط"}`;
-    wikiCaption.textContent =
-      `${item.title || "تصویر مرتبط"} — ${item.source || "نتایج تصاویر"}`;
-    galleryCounter.textContent =
-      `${galleryIndex + 1} / ${galleryImages.length}`;
+
+    /* زیر عکس هیچ نوشته‌ای نمایش داده نمی‌شود */
+    wikiImage.alt = "";
+    wikiCaption.textContent = "";
+    galleryCounter.textContent = "";
 
     wikiImageWrap.classList.add("visible");
     galleryPrev.hidden = galleryImages.length < 2;
@@ -789,9 +782,7 @@
 
     for (const image of rankedImages) {
       if (finalImages.length >= 11) break;
-
       if (finalImages.some(item => item.src === image.src)) continue;
-
       finalImages.push(image);
     }
 
@@ -1433,3 +1424,4 @@
 </script>
 </body>
 </html>
+```
