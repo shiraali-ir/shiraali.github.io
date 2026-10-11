@@ -276,7 +276,6 @@
       line-height: 1.8;
     }
 
-
     .wiki-image {
       display: block;
       position: absolute;
@@ -327,15 +326,12 @@
       right: auto;
     }
 
-
     .gallery-arrow:focus-visible {
       outline: 1px solid rgba(255,255,255,.7);
       outline-offset: -5px;
     }
 
-
     .gallery-arrow[hidden] { display: none; }
-
 
     .result h2 {
       margin: 0;
@@ -388,12 +384,6 @@
       text-align: right;
       overflow: hidden;
     }
-
-
-
-
-
-
 
     .weather-details-title {
       margin: 0 0 14px;
@@ -466,7 +456,6 @@
         height: 300px;
         min-height: 240px;
       }
-
 
       .gallery-arrow {
         width: 38px;
@@ -1515,7 +1504,6 @@
 
     try {
       /* مرحلهٔ ۱: فقط ویکی‌پدیا */
-      statusBox.textContent = "مرحلهٔ ۱ از ۵: در حال جست‌وجوی تصویر ویکی‌پدیا...";
 
       const wikiImageResult = await loadWikipediaImage(
         searchQuery,
@@ -1529,7 +1517,6 @@
       }
 
       /* مرحلهٔ ۲: شناسایی مکان و دریافت هواشناسی (فقط برای جست‌وجوهای مکانی) */
-      statusBox.textContent = "مرحلهٔ ۲ از ۵: در حال بررسی ارتباط عبارت با مکان...";
 
       if (!domain && !target.directUrl) {
         try {
@@ -1538,8 +1525,6 @@
           if (thisSearch !== searchSequence) return;
 
           if (weatherPlace) {
-            statusBox.textContent =
-              `مرحلهٔ ۲ از ۵: در حال دریافت آب‌وهوای ${weatherPlace.name}...`;
 
             const data = await fetchWeather(weatherPlace);
 
@@ -1559,7 +1544,6 @@
       if (thisSearch !== searchSequence) return;
 
       /* مرحلهٔ ۳: نمایش کارت جزئیات هواشناسی (در صورت وجود) */
-      statusBox.textContent = "مرحلهٔ ۳ از ۵: در حال آماده‌سازی اطلاعات هواشناسی...";
 
       renderVisible();
 
@@ -1567,7 +1551,6 @@
       const groups = [];
 
       if (domain) {
-        statusBox.textContent = `مرحلهٔ ۴ از ۵: در حال جست‌وجو در ${domain}...`;
 
         await collectTextGroups(
           `site:${domain} ${searchQuery}`.trim(), 2, " (جست‌وجوی سایت)", groups
@@ -1575,8 +1558,6 @@
 
         if (thisSearch !== searchSequence) return;
       }
-
-      statusBox.textContent = "مرحلهٔ ۴ از ۵: در حال دریافت نتایج متنی...";
 
       await collectTextGroups(searchQuery, 1, "", groups);
 
@@ -1589,7 +1570,6 @@
       renderVisible();
 
       /* مرحلهٔ ۵: اکنون جست‌وجوی تصاویر DuckDuckGo، Bing و Yandex آغاز می‌شود. */
-      statusBox.textContent = "مرحلهٔ ۵ از ۵: در حال دریافت و رتبه‌بندی تصاویر...";
 
       try {
         await collectImageResults(
