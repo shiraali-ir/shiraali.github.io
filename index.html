@@ -54,7 +54,7 @@
     }
 
     .theme {
-      position: absolute;
+      position: fixed;
       z-index: 9999;
       top: 8px;
       left: 8px;
@@ -183,12 +183,16 @@
       padding: 2px;
     }
 
+    /* کادر اول: عکس ویکی‌پدیا */
     .wiki-image-wrap {
       display: none;
       width: 100%;
       margin: 18px 0 22px;
+      padding: 12px;
       text-align: center;
+      border: 1px solid var(--border);
       border-radius: 30px;
+      background: var(--card);
       overflow: hidden;
     }
 
@@ -203,7 +207,14 @@
       max-height: 360px;
       object-fit: contain;
       margin: 0 auto;
-      border-radius: 30px;
+      border-radius: 22px;
+    }
+
+    .wiki-caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
     }
 
     .result h2 {
@@ -299,6 +310,7 @@
       margin-top: 12px;
       color: var(--muted);
       font-size: 12px;
+      line-height: 1.8;
     }
 
     .weather-details-title {
@@ -464,6 +476,7 @@
 
     <div id="status" role="status" aria-live="polite"></div>
 
+    <!-- کادر اول: تصویر ویکی‌پدیا برای همه موضوعات -->
     <div
       id="wikiImageWrap"
       class="wiki-image-wrap"
@@ -476,8 +489,10 @@
         loading="lazy"
         referrerpolicy="no-referrer"
       >
+      <div id="wikiCaption" class="wiki-caption"></div>
     </div>
 
+    <!-- بعد از تصویر، کارت‌های هواشناسی و سپس نتایج جست‌وجو -->
     <section id="results" aria-label="نتایج جست‌وجو"></section>
 
     <button id="showMore" class="more" type="button" hidden>
@@ -490,7 +505,6 @@
 
   const INITIAL_LIMIT = 5;
   const MAX_RESULTS = 11;
-
   const ENGINES = ["duckduckgo", "bing", "yandex"];
 
   const WEIGHTS = {
@@ -522,6 +536,7 @@
   const showMoreButton = document.getElementById("showMore");
   const wikiImageWrap = document.getElementById("wikiImageWrap");
   const wikiImage = document.getElementById("wikiImage");
+  const wikiCaption = document.getElementById("wikiCaption");
 
   let preparedResults = [];
   let visibleCount = 0;
@@ -530,95 +545,25 @@
   let searchSequence = 0;
 
   /*
-   * مکان‌های متداول با مختصات مشخص.
-   * برای کشورها از یک نقطهٔ نماینده استفاده می‌شود؛
-   * این مختصات نشان‌دهندهٔ وضعیت کل کشور نیست.
+   * نام‌های پرکاربرد مکان‌ها.
+   * برای کشورها، این مختصات فقط نماینده یک نقطه از کشور است؛
+   * دمای نقطهٔ انتخاب‌شده را نباید وضعیت کل کشور تلقی کرد.
    */
   const KNOWN_PLACES = {
-    "تهران": {
-      name: "تهران",
-      latitude: 35.6892,
-      longitude: 51.3890,
-      country: "ایران"
-    },
-    "tehran": {
-      name: "Tehran",
-      latitude: 35.6892,
-      longitude: 51.3890,
-      country: "Iran"
-    },
-    "لندن": {
-      name: "لندن",
-      latitude: 51.5072,
-      longitude: -0.1276,
-      country: "بریتانیا"
-    },
-    "london": {
-      name: "London",
-      latitude: 51.5072,
-      longitude: -0.1276,
-      country: "United Kingdom"
-    },
-    "ایران": {
-      name: "ایران — محدودهٔ مرکزی",
-      latitude: 32.4279,
-      longitude: 53.6880,
-      country: "ایران"
-    },
-    "iran": {
-      name: "Iran — Central Region",
-      latitude: 32.4279,
-      longitude: 53.6880,
-      country: "Iran"
-    },
-    "ژاپن": {
-      name: "ژاپن — محدودهٔ مرکزی",
-      latitude: 36.2048,
-      longitude: 138.2529,
-      country: "ژاپن"
-    },
-    "japan": {
-      name: "Japan — Central Region",
-      latitude: 36.2048,
-      longitude: 138.2529,
-      country: "Japan"
-    },
-    "توکیو": {
-      name: "توکیو",
-      latitude: 35.6762,
-      longitude: 139.6503,
-      country: "ژاپن"
-    },
-    "tokyo": {
-      name: "Tokyo",
-      latitude: 35.6762,
-      longitude: 139.6503,
-      country: "Japan"
-    },
-    "نیویورک": {
-      name: "نیویورک",
-      latitude: 40.7128,
-      longitude: -74.0060,
-      country: "آمریکا"
-    },
-    "new york": {
-      name: "New York",
-      latitude: 40.7128,
-      longitude: -74.0060,
-      country: "United States"
-    },
-    "پاریس": {
-      name: "پاریس",
-      latitude: 48.8566,
-      longitude: 2.3522,
-      country: "فرانسه"
-    },
-    "paris": {
-      name: "Paris",
-      latitude: 48.8566,
-      longitude: 2.3522,
-      country: "France"
-    }
+    "تهران": { name: "تهران", latitude: 35.6892, longitude: 51.3890, country: "ایران" },
+    "tehran": { name: "Tehran", latitude: 35.6892, longitude: 51.3890, country: "Iran" },
+    "لندن": { name: "لندن", latitude: 51.5072, longitude: -0.1276, country: "بریتانیا" },
+    "london": { name: "London", latitude: 51.5072, longitude: -0.1276, country: "United Kingdom" },
+    "ایران": { name: "ایران — محدودهٔ مرکزی", latitude: 32.4279, longitude: 53.6880, country: "ایران" },
+    "iran": { name: "Iran — Central Region", latitude: 32.4279, longitude: 53.6880, country: "Iran" },
+    "ژاپن": { name: "ژاپن — محدودهٔ مرکزی", latitude: 36.2048, longitude: 138.2529, country: "ژاپن" },
+    "japan": { name: "Japan — Central Region", latitude: 36.2048, longitude: 138.2529, country: "Japan" },
+    "توکیو": { name: "توکیو", latitude: 35.6762, longitude: 139.6503, country: "ژاپن" },
+    "tokyo": { name: "Tokyo", latitude: 35.6762, longitude: 139.6503, country: "Japan" },
+    "نیویورک": { name: "نیویورک", latitude: 40.7128, longitude: -74.0060, country: "آمریکا" },
+    "new york": { name: "New York", latitude: 40.7128, longitude: -74.0060, country: "United States" },
+    "پاریس": { name: "پاریس", latitude: 48.8566, longitude: 2.3522, country: "فرانسه" },
+    "paris": { name: "Paris", latitude: 48.8566, longitude: 2.3522, country: "France" }
   };
 
   function normalizePlaceName(value) {
@@ -632,7 +577,6 @@
 
   themeButton.addEventListener("click", () => {
     document.body.classList.toggle("dark");
-
     const dark = document.body.classList.contains("dark");
 
     themeButton.innerHTML = dark
@@ -653,12 +597,19 @@
       .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
   });
 
-  async function loadWikipediaImage(query) {
+  /*
+   * دریافت عکس ویکی‌پدیا برای هر عبارت جست‌وجو.
+   * ابتدا ویکی‌پدیای فارسی و در صورت نیاز ویکی‌پدیای انگلیسی بررسی می‌شود.
+   */
+  async function loadWikipediaImage(query, sequence) {
     wikiImage.removeAttribute("src");
     wikiImage.alt = "";
+    wikiCaption.textContent = "";
     wikiImageWrap.classList.remove("visible");
 
     for (const lang of ["fa", "en"]) {
+      if (sequence !== searchSequence) return false;
+
       try {
         const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
 
@@ -677,31 +628,34 @@
         if (!response.ok) continue;
 
         const data = await response.json();
-        const pages = Object.values(data.query?.pages || {});
-        const image = pages.find(
-          page => page.thumbnail?.source
-        )?.thumbnail?.source;
+        if (sequence !== searchSequence) return false;
 
-        if (image) {
-          wikiImage.src = image;
+        const pages = Object.values(data.query?.pages || {});
+        const page = pages.find(item => item.thumbnail?.source);
+
+        if (page?.thumbnail?.source) {
+          wikiImage.src = page.thumbnail.source;
           wikiImage.alt = `تصویر مرتبط با ${query}`;
+          wikiCaption.textContent = page.title
+            ? `تصویر مرتبط با «${page.title}» — ویکی‌پدیا`
+            : `تصویر مرتبط با «${query}» — ویکی‌پدیا`;
+
           wikiImageWrap.classList.add("visible");
-          return;
+          return true;
         }
       } catch (error) {
         console.warn(`Wikipedia image lookup (${lang}) failed:`, error);
       }
     }
+
+    return false;
   }
 
   function addText(parent, tag, text, className) {
     const el = document.createElement(tag);
     el.textContent = text == null ? "" : String(text);
 
-    if (className) {
-      el.className = className;
-    }
-
+    if (className) el.className = className;
     parent.appendChild(el);
     return el;
   }
@@ -710,9 +664,7 @@
     try {
       const u = new URL(raw);
 
-      if (!["http:", "https:"].includes(u.protocol)) {
-        return null;
-      }
+      if (!["http:", "https:"].includes(u.protocol)) return null;
 
       u.hash = "";
       u.hostname = u.hostname.toLowerCase().replace(/^www\./, "");
@@ -722,10 +674,7 @@
       }
 
       [...u.searchParams.keys()].forEach(k => {
-        if (
-          /^utm_/i.test(k) ||
-          ["gclid", "fbclid"].includes(k.toLowerCase())
-        ) {
+        if (/^utm_/i.test(k) || ["gclid", "fbclid"].includes(k.toLowerCase())) {
           u.searchParams.delete(k);
         }
       });
@@ -758,8 +707,7 @@
 
     icon.src =
       "https://www.google.com/s2/favicons?domain=" +
-      encodeURIComponent(host) +
-      "&sz=64";
+      encodeURIComponent(host) + "&sz=64";
 
     icon.onerror = function () {
       if (this.dataset.fallbackTried !== "yes") {
@@ -798,16 +746,12 @@
           domain = parsed.hostname.toLowerCase().replace(/^www\./, "");
           remaining = remaining.replace(urlMatch[0], " ").trim();
         }
-      } catch {
-        // در صورت نامعتبر بودن نشانی، تشخیص نام سایت ادامه می‌یابد.
-      }
+      } catch {}
     }
 
     if (!domain) {
       for (const site of SITE_ALIASES) {
-        const aliases = [...site.names].sort(
-          (a, b) => b.length - a.length
-        );
+        const aliases = [...site.names].sort((a, b) => b.length - a.length);
 
         for (const alias of aliases) {
           const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -834,14 +778,8 @@
 
     if (!remaining && directUrl) {
       try {
-        const path = new URL(directUrl).pathname
-          .split("/")
-          .filter(Boolean)
-          .pop();
-
-        if (path) {
-          remaining = decodeURIComponent(path).replace(/[-_]/g, " ");
-        }
+        const path = new URL(directUrl).pathname.split("/").filter(Boolean).pop();
+        if (path) remaining = decodeURIComponent(path).replace(/[-_]/g, " ");
       } catch {}
     }
 
@@ -853,9 +791,9 @@
   }
 
   /*
-   * تشخیص مکان برای هواشناسی:
-   * نام‌های رایج مستقیماً شناسایی می‌شوند.
-   * مکان‌های دیگر با سرویس Geocoding جست‌وجو می‌شوند.
+   * تشخیص مکان:
+   * ابتدا نام‌های مشخص بررسی می‌شوند.
+   * سپس سرویس جغرافیایی Open-Meteo برای مکان‌های دیگر استفاده می‌شود.
    */
   async function findWeatherPlace(query) {
     const normalized = normalizePlaceName(query);
@@ -864,8 +802,6 @@
       return KNOWN_PLACES[normalized];
     }
 
-    // برای جلوگیری از تبدیل عبارت‌های طولانی یا جست‌وجوی سایت‌ها
-    // به درخواست هواشناسی، فقط نام‌های کوتاه بررسی می‌شوند.
     if (
       normalized.length > 45 ||
       normalized.split(" ").length > 4 ||
@@ -874,40 +810,55 @@
       return null;
     }
 
-    try {
-      const url = new URL(
-        "https://geocoding-api.open-meteo.com/v1/search"
-      );
+    for (const language of ["fa", "en"]) {
+      try {
+        const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+        url.searchParams.set("name", query.trim());
+        url.searchParams.set("count", "5");
+        url.searchParams.set("language", language);
+        url.searchParams.set("format", "json");
 
-      url.searchParams.set("name", query.trim());
-      url.searchParams.set("count", "1");
-      url.searchParams.set("language", "fa");
-      url.searchParams.set("format", "json");
+        const response = await fetch(url.toString());
+        if (!response.ok) continue;
 
-      const response = await fetch(url.toString());
-      if (!response.ok) return null;
+        const data = await response.json();
+        const places = data.results || [];
 
-      const data = await response.json();
-      const place = data.results?.[0];
+        if (!places.length) continue;
 
-      if (
-        !place ||
-        !Number.isFinite(place.latitude) ||
-        !Number.isFinite(place.longitude)
-      ) {
-        return null;
+        /*
+         * فقط زمانی مکان پذیرفته می‌شود که نام مکان با عبارت جست‌وجو
+         * تطبیق قابل قبولی داشته باشد؛ این کار احتمال تشخیص اشتباه را کم می‌کند.
+         */
+        const queryNorm = normalizePlaceName(query);
+        const place = places.find(item => {
+          const name = normalizePlaceName(item.name || "");
+          return name === queryNorm ||
+            name.includes(queryNorm) ||
+            queryNorm.includes(name);
+        });
+
+        if (!place) continue;
+
+        if (
+          !Number.isFinite(place.latitude) ||
+          !Number.isFinite(place.longitude)
+        ) {
+          continue;
+        }
+
+        return {
+          name: place.name,
+          latitude: place.latitude,
+          longitude: place.longitude,
+          country: place.country || ""
+        };
+      } catch (error) {
+        console.warn("Weather location lookup failed:", error);
       }
-
-      return {
-        name: place.name,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        country: place.country || ""
-      };
-    } catch (error) {
-      console.warn("Weather location lookup failed:", error);
-      return null;
     }
+
+    return null;
   }
 
   async function fetchWeather(place) {
@@ -935,9 +886,12 @@
     url.searchParams.set(
       "daily",
       [
+        "weather_code",
         "temperature_2m_max",
         "temperature_2m_min",
-        "precipitation_probability_max"
+        "precipitation_probability_max",
+        "sunrise",
+        "sunset"
       ].join(",")
     );
     url.searchParams.set("forecast_days", "1");
@@ -960,32 +914,21 @@
 
   function weatherCodeInfo(code, isDay = true) {
     if (code === 0) {
-      return {
-        text: "آسمان صاف",
-        icon: isDay ? "☀️" : "🌙"
-      };
+      return { text: "آسمان صاف", icon: isDay ? "☀️" : "🌙" };
     }
 
     if ([1, 2].includes(code)) {
-      return {
-        text: "کمی تا نیمه‌ابری",
-        icon: isDay ? "🌤️" : "☁️"
-      };
+      return { text: "کمی تا نیمه‌ابری", icon: isDay ? "🌤️" : "☁️" };
     }
 
-    if (code === 3) {
-      return { text: "ابری", icon: "☁️" };
-    }
+    if (code === 3) return { text: "ابری", icon: "☁️" };
 
     if ([45, 48].includes(code)) {
       return { text: "مه‌آلود", icon: "🌫️" };
     }
 
     if ([51, 53, 55, 56, 57].includes(code)) {
-      return {
-        text: "نم‌نم باران یا باران ریز",
-        icon: "🌦️"
-      };
+      return { text: "نم‌نم باران یا باران ریز", icon: "🌦️" };
     }
 
     if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
@@ -997,16 +940,18 @@
     }
 
     if ([95, 96, 99].includes(code)) {
-      return {
-        text: "رعدوبرق و احتمال طوفان",
-        icon: "⛈️"
-      };
+      return { text: "رعدوبرق و احتمال طوفان", icon: "⛈️" };
     }
 
-    return {
-      text: "وضعیت هوا نامشخص",
-      icon: "🌍"
-    };
+    return { text: "وضعیت هوا نامشخص", icon: "🌍" };
+  }
+
+  function formatNumber(value, suffix = "") {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return "اطلاعات موجود نیست";
+    }
+
+    return `${value}${suffix}`;
   }
 
   function weatherMetric(label, value) {
@@ -1019,6 +964,10 @@
     return item;
   }
 
+  /*
+   * کارت‌های هواشناسی در ابتدای نتایج قرار می‌گیرند:
+   * کارت اول تصویر گرافیکی هوا و کارت دوم جزئیات آن است.
+   */
   function renderWeatherCards(data) {
     if (!data?.current) return;
 
@@ -1038,8 +987,10 @@
     const rainChance = daily.precipitation_probability_max?.[0];
     const high = daily.temperature_2m_max?.[0];
     const low = daily.temperature_2m_min?.[0];
+    const sunrise = daily.sunrise?.[0];
+    const sunset = daily.sunset?.[0];
 
-    // کادر اول: تصویر گرافیکی وضعیت فعلی هوا
+    // کادر دومِ صفحه: تصویر وضعیت هوا (بعد از عکس ویکی‌پدیا)
     const heroCard = document.createElement("article");
     heroCard.className = "weather-card";
 
@@ -1055,19 +1006,13 @@
       "weather-location"
     );
 
-    addText(
-      hero,
-      "div",
-      `${temperature}°C`,
-      "weather-temperature"
-    );
-
+    addText(hero, "div", `${temperature}°C`, "weather-temperature");
     addText(hero, "div", info.text, "weather-description");
 
     addText(
       hero,
       "div",
-      `بیشینه ${high ?? "—"}°C · کمینه ${low ?? "—"}°C`,
+      `بیشینه ${formatNumber(high, "°C")} · کمینه ${formatNumber(low, "°C")}`,
       "weather-description"
     );
 
@@ -1081,7 +1026,7 @@
     heroCard.appendChild(hero);
     resultsBox.appendChild(heroCard);
 
-    // کادر دوم: جزئیات شرایط آب‌وهوا
+    // کادر سومِ صفحه: جزئیات شرایط آب‌وهوا
     const detailsCard = document.createElement("article");
     detailsCard.className = "weather-card";
 
@@ -1095,46 +1040,35 @@
     const grid = document.createElement("div");
     grid.className = "weather-grid";
 
-    grid.appendChild(weatherMetric(
-      "🌡️ دمای فعلی",
-      `${temperature}°C`
-    ));
-
-    grid.appendChild(weatherMetric(
-      "🤔 دمای احساس‌شده",
-      `${feelsLike}°C`
-    ));
-
-    grid.appendChild(weatherMetric(
-      "💧 رطوبت نسبی",
-      `${humidity}%`
-    ));
-
-    grid.appendChild(weatherMetric(
-      "💨 سرعت باد",
-      `${wind} کیلومتر بر ساعت`
-    ));
-
-    grid.appendChild(weatherMetric(
-      "☁️ پوشش ابر",
-      `${current.cloud_cover}%`
-    ));
-
-    grid.appendChild(weatherMetric(
-      "🌧️ بارش فعلی",
-      `${current.precipitation} میلی‌متر`
-    ));
-
+    grid.appendChild(weatherMetric("🌡️ دمای فعلی", `${temperature}°C`));
+    grid.appendChild(weatherMetric("🤔 دمای احساس‌شده", `${feelsLike}°C`));
+    grid.appendChild(weatherMetric("💧 رطوبت نسبی", formatNumber(humidity, "%")));
+    grid.appendChild(weatherMetric("💨 سرعت باد", formatNumber(wind, " کیلومتر بر ساعت")));
+    grid.appendChild(weatherMetric("☁️ پوشش ابر", formatNumber(current.cloud_cover, "%")));
+    grid.appendChild(weatherMetric("🌧️ بارش فعلی", formatNumber(current.precipitation, " میلی‌متر")));
     grid.appendChild(weatherMetric(
       "🌂 احتمال بارش امروز",
-      rainChance == null
-        ? "اطلاعات موجود نیست"
-        : `${rainChance}%`
+      rainChance == null ? "اطلاعات موجود نیست" : `${rainChance}%`
     ));
-
     grid.appendChild(weatherMetric(
       "🧭 جهت باد",
-      `${Math.round(current.wind_direction_10m)} درجه`
+      formatNumber(current.wind_direction_10m, " درجه")
+    ));
+    grid.appendChild(weatherMetric(
+      "🌅 طلوع خورشید",
+      sunrise ? sunrise.split("T").pop() : "اطلاعات موجود نیست"
+    ));
+    grid.appendChild(weatherMetric(
+      "🌇 غروب خورشید",
+      sunset ? sunset.split("T").pop() : "اطلاعات موجود نیست"
+    ));
+    grid.appendChild(weatherMetric(
+      "🌡️ بیشینه دمای امروز",
+      formatNumber(high, "°C")
+    ));
+    grid.appendChild(weatherMetric(
+      "🌡️ کمینه دمای امروز",
+      formatNumber(low, "°C")
     ));
 
     detailsCard.appendChild(grid);
@@ -1157,7 +1091,6 @@
 
   async function searchEngine(query, engine) {
     const u = new URL(API);
-
     u.searchParams.set("q", query);
     u.searchParams.set("engines", engine);
     u.searchParams.set("format", "json");
@@ -1166,9 +1099,7 @@
       headers: { Accept: "application/json" }
     });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     return res.json();
   }
@@ -1213,19 +1144,11 @@
           item.ranks[group.engine] = index + 1;
 
           const rank = index + 1;
-
-          if (rank <= 5) {
-            item.score += WEIGHTS[group.engine][rank - 1];
-          }
+          if (rank <= 5) item.score += WEIGHTS[group.engine][rank - 1];
         }
 
-        if (!item.title && r.title) {
-          item.title = String(r.title).trim();
-        }
-
-        if (!item.content && r.content) {
-          item.content = r.content;
-        }
+        if (!item.title && r.title) item.title = String(r.title).trim();
+        if (!item.content && r.content) item.content = r.content;
       });
     }
 
@@ -1252,12 +1175,9 @@
       .sort((a, b) =>
         b.priority - a.priority ||
         b.score - a.score ||
-        (a.ranks.duckduckgo || Infinity) -
-          (b.ranks.duckduckgo || Infinity) ||
-        (a.ranks.bing || Infinity) -
-          (b.ranks.bing || Infinity) ||
-        (a.ranks.yandex || Infinity) -
-          (b.ranks.yandex || Infinity) ||
+        (a.ranks.duckduckgo || Infinity) - (b.ranks.duckduckgo || Infinity) ||
+        (a.ranks.bing || Infinity) - (b.ranks.bing || Infinity) ||
+        (a.ranks.yandex || Infinity) - (b.ranks.yandex || Infinity) ||
         a._stable - b._stable
       )
       .slice(0, MAX_RESULTS);
@@ -1278,16 +1198,12 @@
     link.rel = "noopener noreferrer";
 
     const title = typeof r.title === "string" ? r.title.trim() : "";
-
-    // عنوان موجود: فقط عنوان. عنوان خالی: نشانی لینک.
     link.textContent = title || r.url;
 
     heading.appendChild(link);
     card.appendChild(heading);
 
-    if (r.content) {
-      addText(card, "p", r.content);
-    }
+    if (r.content) addText(card, "p", r.content);
 
     addText(
       card,
@@ -1302,10 +1218,8 @@
   function renderVisible() {
     resultsBox.replaceChildren();
 
-    // کارت‌های هواشناسی قبل از نتایج عادی قرار می‌گیرند.
-    if (weatherData) {
-      renderWeatherCards(weatherData);
-    }
+    // ترتیب: وضعیت هوا، جزئیات هوا، سپس نتایج معمول جست‌وجو
+    if (weatherData) renderWeatherCards(weatherData);
 
     preparedResults
       .slice(0, visibleCount)
@@ -1347,7 +1261,6 @@
     if (!originalQuery) return;
 
     const thisSearch = ++searchSequence;
-
     const target = detectTarget(originalQuery);
     const searchQuery = target.query;
     const domain = target.domain;
@@ -1363,20 +1276,37 @@
 
     wikiImage.removeAttribute("src");
     wikiImage.alt = "";
+    wikiCaption.textContent = "";
     wikiImageWrap.classList.remove("visible");
 
-    statusBox.textContent = "در حال بررسی مکان و دریافت اطلاعات هواشناسی...";
+    statusBox.textContent = "در حال دریافت عکس مرتبط از ویکی‌پدیا...";
 
     try {
       /*
-       * هواشناسی فقط برای عبارت‌های شبیه نام مکان بررسی می‌شود.
-       * اگر عبارت نام سایت یا آدرس مستقیم باشد، هواشناسی اجرا نمی‌شود.
+       * مرحله اول همیشه تلاش برای عکس ویکی‌پدیاست.
+       * این کار برای موضوعات عادی و مکان‌های جغرافیایی یکسان است.
+       */
+      const wikiPromise = loadWikipediaImage(searchQuery, thisSearch);
+
+      /*
+       * اگر عبارت، نام سایت یا آدرس مستقیم نباشد، بررسی مکان انجام می‌شود.
        */
       let weatherPlace = null;
 
       if (!domain && !target.directUrl) {
+        statusBox.textContent =
+          "در حال بررسی تصویر موضوع و شناسایی احتمالی مکان جغرافیایی...";
+
         weatherPlace = await findWeatherPlace(originalQuery);
       }
+
+      if (thisSearch !== searchSequence) return;
+
+      /*
+       * عکس ویکی‌پدیا را منتظر می‌مانیم تا جایگاهش پیش از هواشناسی باشد.
+       * اگر عکس پیدا نشود، بقیه جست‌وجو متوقف نمی‌شود.
+       */
+      await wikiPromise;
 
       if (thisSearch !== searchSequence) return;
 
@@ -1392,20 +1322,17 @@
         }
 
         if (thisSearch !== searchSequence) return;
-      } else {
-        // برای جست‌وجوهای عادی، تصویر مرتبط ویکی‌پدیا حفظ می‌شود.
-        loadWikipediaImage(searchQuery);
       }
 
       statusBox.textContent = domain
         ? `ابتدا در ${domain} جست‌وجو می‌کنیم، سپس نتایج عمومی را بررسی می‌کنیم...`
         : weatherData
-          ? "وضعیت هوا دریافت شد؛ در حال تکمیل نتایج جست‌وجو..."
+          ? "اطلاعات هواشناسی دریافت شد؛ در حال تکمیل نتایج جست‌وجو..."
           : "در حال جست‌وجو در DuckDuckGo، Bing و Yandex...";
 
       const groups = [];
 
-      // مرحله اول: جست‌وجوی محدود به سایت انتخاب‌شده.
+      // مرحله دوم: جست‌وجوی محدود به سایت انتخاب‌شده
       if (domain) {
         const siteQuery = `site:${domain} ${searchQuery}`.trim();
 
@@ -1449,7 +1376,7 @@
         }
       }
 
-      // مرحله دوم: جست‌وجوی عمومی در سه موتور فعلی.
+      // مرحله سوم: جست‌وجوی عمومی در موتورهای فعلی
       const generalSettled = await Promise.all(
         ENGINES.map(async engine => {
           try {
@@ -1491,10 +1418,7 @@
 
       preparedResults = mergeAndRank(groups, target.directUrl);
 
-      visibleCount = Math.min(
-        INITIAL_LIMIT,
-        preparedResults.length
-      );
+      visibleCount = Math.min(INITIAL_LIMIT, preparedResults.length);
 
       if (preparedResults.length) {
         statusBox.textContent = "";
