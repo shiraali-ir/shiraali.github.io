@@ -77,8 +77,9 @@
       -webkit-appearance: none;
     }
 
+    /* عرض محتوای دسکتاپ: 60 درصد صفحه */
     main {
-      width: 50%;
+      width: 60%;
       margin: 0 auto;
       padding: clamp(75px, 12vh, 120px) 0 45px;
       text-align: center;
@@ -157,11 +158,13 @@
     #results {
       text-align: right;
       margin-top: 18px;
+      width: 100%;
     }
 
     /* کارت نتیجه با فضای کافی برای آیکون */
     .result {
       position: relative;
+      width: 100%;
       margin: 0 0 14px;
       padding: 17px 18px 17px 54px;
       border: 1px solid var(--border);
@@ -185,6 +188,7 @@
 
     .wiki-image-wrap {
       display: none;
+      width: 100%;
       margin: 18px 0 22px;
       text-align: center;
       border-radius: 30px;
@@ -278,6 +282,7 @@
       display: none;
     }
 
+    /* تبلت و صفحه‌های کوچک‌تر */
     @media (max-width: 700px) {
       main {
         width: 92%;
