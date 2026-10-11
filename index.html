@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -46,35 +46,19 @@
       transition: background .2s, color .2s;
     }
 
-    .theme-icon {
-      width: 25px;
-      height: 25px;
-      display: block;
-      flex: none;
-    }
-
     .theme {
-      position: absolute;
-      z-index: 9999;
-      top: 8px;
-      left: 8px;
+      position: fixed;
+      z-index: 5;
+      top: 18px;
+      left: 18px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
       width: 42px;
       height: 42px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 0;
-      border-radius: 50%;
-      background: transparent;
-      box-shadow: none;
-      color: #fff;
+      background: var(--button);
+      color: var(--text);
       cursor: pointer;
-      font-family: Arial, sans-serif;
-      font-size: 27px;
-      line-height: 1;
-      appearance: none;
-      -webkit-appearance: none;
+      font-size: 19px;
     }
 
     main {
@@ -159,38 +143,61 @@
       margin-top: 18px;
     }
 
-    /* کارت‌های نتایج جست‌وجو */
+    /* کادر نتیجهٔ جست‌وجو */
     .result {
+      position: relative;
       margin: 0 0 14px;
-      padding: 17px 18px;
+      padding: 17px 18px 17px 52px;
       border: 1px solid var(--border);
       border-radius: 30px;
       background: var(--card);
       overflow-wrap: anywhere;
     }
 
-    /* کادر نمایش تصویر */
-    .wiki-image-wrap {
-      display: none;
-      margin: 18px 0 22px;
-      text-align: center;
-      border-radius: 30px;
+    /* کادر کوچک لوگوی سایت */
+    .result-site-icon {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input);
       overflow: hidden;
     }
 
-    .wiki-image-wrap.visible {
+    .result-site-icon img {
       display: block;
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
     }
 
-    /* خود تصویر نیز گوشه‌های گرد دارد */
-    .wiki-image {
+    /* آیکون جایگزین کرهٔ زمین */
+    .result-site-icon .icon-fallback {
+      display: none;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-site-icon .icon-fallback svg {
       display: block;
-      width: auto;
-      max-width: 100%;
-      max-height: 360px;
-      object-fit: contain;
-      margin: 0 auto;
-      border-radius: 30px;
+      width: 22px;
+      height: 22px;
+    }
+
+    .result-site-icon.fallback img {
+      display: none;
+    }
+
+    .result-site-icon.fallback .icon-fallback {
+      display: flex;
     }
 
     .result h2 {
@@ -244,6 +251,30 @@
       text-align: right;
     }
 
+    /* تصویر مرتبط ویکی‌پدیا */
+    .wiki-image-wrap {
+      display: none;
+      margin: 18px 0 22px;
+      padding: 10px;
+      border-radius: 30px;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .wiki-image-wrap.visible {
+      display: block;
+    }
+
+    .wiki-image {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      margin: 0 auto;
+      border-radius: 30px;
+    }
+
     .more {
       display: inline-block;
       margin: 15px 0 5px;
@@ -285,7 +316,12 @@
       }
 
       .result {
-        padding: 14px;
+        padding: 14px 14px 14px 48px;
+      }
+
+      .result-site-icon {
+        top: 13px;
+        left: 12px;
       }
 
       .result h2 {
@@ -302,11 +338,7 @@
     type="button"
     aria-label="تغییر حالت روشن و تاریک"
     title="تغییر حالت روشن و تاریک"
-  >
-    <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/>
-    </svg>
-  </button>
+  >🌙</button>
 
   <main>
     <img
@@ -357,376 +389,486 @@
     </button>
   </main>
 
-<script>
-  const API = "https://shiraali-search.onrender.com/search";
+  <script>
+    const API = "https://shiraali-search.onrender.com/search";
 
-  const INITIAL_LIMIT = 5;
-  const MAX_RESULTS = 9;
+    const INITIAL_LIMIT = 5;
+    const MAX_RESULTS = 9;
 
-  const ENGINES = ["duckduckgo", "bing", "yandex"];
+    const ENGINES = ["duckduckgo", "bing", "yandex"];
 
-  const WEIGHTS = {
-    duckduckgo: [5, 5, 4, 4, 4],
-    bing: [5, 3, 3, 2, 1],
-    yandex: [1, 1, 1, 1, 1]
-  };
+    const WEIGHTS = {
+      duckduckgo: [5, 5, 4, 4, 4],
+      bing: [5, 3, 3, 2, 1],
+      yandex: [1, 1, 1, 1, 1]
+    };
 
-  const themeButton = document.getElementById("theme");
-  const searchForm = document.getElementById("searchForm");
-  const queryInput = document.getElementById("query");
-  const submitButton = document.getElementById("submitButton");
-  const statusBox = document.getElementById("status");
-  const resultsBox = document.getElementById("results");
-  const showMoreButton = document.getElementById("showMore");
-  const wikiImageWrap = document.getElementById("wikiImageWrap");
-  const wikiImage = document.getElementById("wikiImage");
+    const themeButton = document.getElementById("theme");
+    const searchForm = document.getElementById("searchForm");
+    const queryInput = document.getElementById("query");
+    const submitButton = document.getElementById("submitButton");
+    const statusBox = document.getElementById("status");
+    const resultsBox = document.getElementById("results");
+    const showMoreButton = document.getElementById("showMore");
+    const wikiImageWrap = document.getElementById("wikiImageWrap");
+    const wikiImage = document.getElementById("wikiImage");
 
-  let preparedResults = [];
-  let visibleCount = 0;
-  let currentWarnings = [];
+    let preparedResults = [];
+    let visibleCount = 0;
+    let currentWarnings = [];
 
-  themeButton.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
+    /* تغییر حالت روشن و تاریک */
+    themeButton.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
 
-    const dark = document.body.classList.contains("dark");
+      const dark = document.body.classList.contains("dark");
 
-    themeButton.innerHTML = dark
-      ? `<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4.5" fill="#fff"/>
-          <g stroke="#fff" stroke-width="2" stroke-linecap="round">
-            <path d="M12 2v2.2M12 19.8V22"/>
-            <path d="M4.93 4.93l1.55 1.55M17.52 17.52l1.55 1.55"/>
-            <path d="M2 12h2.2M19.8 12H22"/>
-            <path d="M4.93 19.07l1.55-1.55M17.52 6.48l1.55-1.55"/>
-          </g>
-        </svg>`
-      : `<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/>
-        </svg>`;
+      themeButton.textContent = dark ? "☀️" : "🌙";
 
-    document.querySelector('meta[name="theme-color"]')
-      .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
-  });
-
-  async function loadWikipediaImage(query) {
-    wikiImage.removeAttribute("src");
-    wikiImage.alt = "";
-    wikiImageWrap.classList.remove("visible");
-
-    const languages = ["fa", "en"];
-
-    for (const lang of languages) {
-      try {
-        const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
-
-        api.searchParams.set("action", "query");
-        api.searchParams.set("generator", "search");
-        api.searchParams.set("gsrsearch", query);
-        api.searchParams.set("gsrnamespace", "0");
-        api.searchParams.set("gsrlimit", "1");
-        api.searchParams.set("prop", "pageimages");
-        api.searchParams.set("piprop", "thumbnail");
-        api.searchParams.set("pithumbsize", "900");
-        api.searchParams.set("format", "json");
-        api.searchParams.set("origin", "*");
-
-        const response = await fetch(api.toString());
-
-        if (!response.ok) continue;
-
-        const data = await response.json();
-        const pages = Object.values(data.query?.pages || {});
-        const image = pages.find(
-          page => page.thumbnail?.source
-        )?.thumbnail?.source;
-
-        if (image) {
-          wikiImage.src = image;
-          wikiImageWrap.classList.add("visible");
-          return;
-        }
-      } catch (error) {
-        console.warn(`Wikipedia image lookup (${lang}) failed:`, error);
-      }
-    }
-  }
-
-  function addText(parent, tag, text, className) {
-    const el = document.createElement(tag);
-    el.textContent = text || "";
-
-    if (className) {
-      el.className = className;
-    }
-
-    parent.appendChild(el);
-    return el;
-  }
-
-  function normalizedUrl(raw) {
-    try {
-      const u = new URL(raw);
-
-      if (!["http:", "https:"].includes(u.protocol)) {
-        return null;
-      }
-
-      u.hash = "";
-      u.hostname = u.hostname.toLowerCase().replace(/^www\./, "");
-
-      if (u.pathname.length > 1) {
-        u.pathname = u.pathname.replace(/\/+$/, "");
-      }
-
-      [...u.searchParams.keys()].forEach(k => {
-        if (/^utm_/i.test(k) || ["gclid", "fbclid"].includes(k.toLowerCase())) {
-          u.searchParams.delete(k);
-        }
-      });
-
-      u.searchParams.sort();
-      return u.href;
-    } catch {
-      return null;
-    }
-  }
-
-  function renderOneResult(r) {
-    const card = document.createElement("article");
-    card.className = "result";
-
-    const h = document.createElement("h2");
-    const a = document.createElement("a");
-
-    a.href = r.url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = r.title || r.url;
-
-    h.appendChild(a);
-    card.appendChild(h);
-
-    addText(card, "div", r.url, "result-url");
-
-    if (r.content) {
-      addText(card, "p", r.content);
-    }
-
-    addText(
-      card,
-      "span",
-      `امتیاز: ${r.score} | موتورهای مؤثر: ${r.engines.join(", ")}`,
-      "result-engine"
-    );
-
-    resultsBox.appendChild(card);
-  }
-
-  function renderVisible() {
-    resultsBox.replaceChildren();
-
-    preparedResults
-      .slice(0, visibleCount)
-      .forEach(renderOneResult);
-
-    if (currentWarnings.length) {
-      const msgs = currentWarnings.map(
-        x => `${x.engine}: ${x.reason}`
-      );
-
-      addText(
-        resultsBox,
-        "div",
-        "برخی موتورهای جست‌وجو پاسخ نداده‌اند: " + msgs.join("؛ "),
-        "warning"
-      );
-    }
-
-    showMoreButton.hidden =
-      visibleCount >= preparedResults.length ||
-      visibleCount >= MAX_RESULTS;
-  }
-
-  showMoreButton.addEventListener("click", () => {
-    visibleCount = Math.min(
-      visibleCount + 4,
-      MAX_RESULTS,
-      preparedResults.length
-    );
-
-    renderVisible();
-    statusBox.textContent = "";
-  });
-
-  async function searchEngine(query, engine) {
-    const u = new URL(API);
-
-    u.searchParams.set("q", query);
-    u.searchParams.set("engines", engine);
-    u.searchParams.set("format", "json");
-
-    const res = await fetch(u.toString(), {
-      headers: { Accept: "application/json" }
+      document
+        .querySelector('meta[name="theme-color"]')
+        .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
     });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    /* دریافت تصویر مرتبط از ویکی‌پدیا */
+    async function loadWikipediaImage(query) {
+      wikiImage.removeAttribute("src");
+      wikiImage.alt = "";
+      wikiImageWrap.classList.remove("visible");
 
-    return res.json();
-  }
+      const languages = ["fa", "en"];
 
-  function mergeAndRank(engineData) {
-    const merged = new Map();
-    let stable = 0;
+      for (const lang of languages) {
+        try {
+          const api = new URL(
+            `https://${lang}.wikipedia.org/w/api.php`
+          );
 
-    for (const engine of ENGINES) {
-      const data = engineData[engine];
+          api.searchParams.set("action", "query");
+          api.searchParams.set("generator", "search");
+          api.searchParams.set("gsrsearch", query);
+          api.searchParams.set("gsrnamespace", "0");
+          api.searchParams.set("gsrlimit", "1");
+          api.searchParams.set("prop", "pageimages");
+          api.searchParams.set("piprop", "thumbnail");
+          api.searchParams.set("pithumbsize", "900");
+          api.searchParams.set("format", "json");
+          api.searchParams.set("origin", "*");
 
-      if (!data) continue;
+          const response = await fetch(api.toString());
 
-      const list = Array.isArray(data.results)
-        ? data.results
-        : [];
+          if (!response.ok) continue;
 
-      list.forEach((r, index) => {
-        const url = normalizedUrl(r.url);
+          const data = await response.json();
+          const pages = Object.values(data.query?.pages || {});
 
-        if (!url) return;
+          const image = pages.find(
+            page => page.thumbnail?.source
+          )?.thumbnail?.source;
 
-        let item = merged.get(url);
-
-        if (!item) {
-          item = {
-            ...r,
-            url,
-            score: 0,
-            engines: [],
-            ranks: {},
-            _stable: stable++
-          };
-
-          merged.set(url, item);
-        }
-
-        if (item.engines.includes(engine)) return;
-
-        item.engines.push(engine);
-        item.ranks[engine] = index + 1;
-
-        const rank = index + 1;
-
-        if (rank <= 5) {
-          item.score += WEIGHTS[engine][rank - 1];
-        }
-
-        if (!item.title && r.title) {
-          item.title = r.title;
-        }
-
-        if (!item.content && r.content) {
-          item.content = r.content;
-        }
-      });
-    }
-
-    return [...merged.values()]
-      .sort((a, b) =>
-        b.score - a.score ||
-        (a.ranks.duckduckgo || Infinity) -
-          (b.ranks.duckduckgo || Infinity) ||
-        (a.ranks.bing || Infinity) -
-          (b.ranks.bing || Infinity) ||
-        (a.ranks.yandex || Infinity) -
-          (b.ranks.yandex || Infinity) ||
-        a._stable - b._stable
-      )
-      .slice(0, MAX_RESULTS);
-  }
-
-  searchForm.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const query = queryInput.value.trim();
-
-    if (!query) return;
-
-    submitButton.disabled = true;
-    showMoreButton.hidden = true;
-    resultsBox.replaceChildren();
-
-    wikiImage.removeAttribute("src");
-    wikiImageWrap.classList.remove("visible");
-    loadWikipediaImage(query);
-
-    preparedResults = [];
-    visibleCount = 0;
-    currentWarnings = [];
-
-    statusBox.textContent =
-      "در حال جست‌وجو در DuckDuckGo، Bing و Yandex... بار اول ممکن است سرویس Render کمی دیر پاسخ دهد.";
-
-    try {
-      const settled = await Promise.all(
-        ENGINES.map(async engine => {
-          try {
-            return {
-              engine,
-              data: await searchEngine(query, engine)
-            };
-          } catch (err) {
-            return {
-              engine,
-              error: err.message
-            };
+          if (image) {
+            wikiImage.src = image;
+            wikiImageWrap.classList.add("visible");
+            return;
           }
-        })
+        } catch (error) {
+          console.warn(
+            `Wikipedia image lookup (${lang}) failed:`,
+            error
+          );
+        }
+      }
+    }
+
+    function addText(parent, tag, text, className) {
+      const el = document.createElement(tag);
+
+      el.textContent = text || "";
+
+      if (className) {
+        el.className = className;
+      }
+
+      parent.appendChild(el);
+
+      return el;
+    }
+
+    /* یکسان‌سازی نشانی نتایج */
+    function normalizedUrl(raw) {
+      try {
+        const u = new URL(raw);
+
+        if (!["http:", "https:"].includes(u.protocol)) {
+          return null;
+        }
+
+        u.hash = "";
+
+        u.hostname = u.hostname
+          .toLowerCase()
+          .replace(/^www\./, "");
+
+        if (u.pathname.length > 1) {
+          u.pathname = u.pathname.replace(/\/+$/, "");
+        }
+
+        [...u.searchParams.keys()].forEach(k => {
+          if (
+            /^utm_/i.test(k) ||
+            ["gclid", "fbclid"].includes(k.toLowerCase())
+          ) {
+            u.searchParams.delete(k);
+          }
+        });
+
+        u.searchParams.sort();
+
+        return u.href;
+      } catch {
+        return null;
+      }
+    }
+
+    function hostOf(raw) {
+      try {
+        return new URL(raw).hostname
+          .toLowerCase()
+          .replace(/^www\./, "");
+      } catch {
+        return "";
+      }
+    }
+
+    /* ساخت آیکون SVG پیش‌فرض کره زمین */
+    function createGlobeFallback() {
+      const span = document.createElement("span");
+
+      span.className = "icon-fallback";
+
+      span.innerHTML = `
+        <svg
+          viewBox="0 0 48 48"
+          role="img"
+          aria-label="کره زمین"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="24"
+            cy="24"
+            r="21"
+            fill="#2788d8"
+          />
+
+          <g
+            fill="none"
+            stroke="#fff"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          >
+            <ellipse cx="24" cy="24" rx="9.5" ry="21"/>
+            <ellipse cx="24" cy="24" rx="20.5" ry="8.5"/>
+            <path d="M4 24h40"/>
+            <path d="M8 14.5h32"/>
+            <path d="M8 33.5h32"/>
+          </g>
+        </svg>
+      `;
+
+      return span;
+    }
+
+    /* نمایش یک نتیجه همراه با لوگوی همان سایت */
+    function renderOneResult(r) {
+      const card = document.createElement("article");
+      card.className = "result";
+
+      const iconWrap = document.createElement("div");
+      iconWrap.className = "result-site-icon";
+      iconWrap.setAttribute("aria-hidden", "true");
+
+      const icon = document.createElement("img");
+      icon.alt = "";
+      icon.loading = "lazy";
+      icon.referrerPolicy = "no-referrer";
+
+      const fallback = createGlobeFallback();
+
+      const host = hostOf(r.url);
+
+      /*
+       * ابتدا لوگوی سایت را دریافت می‌کنیم.
+       * اگر لوگو بارگذاری نشود، کره زمین نمایش داده می‌شود.
+       */
+      icon.onerror = () => {
+        iconWrap.classList.add("fallback");
+      };
+
+      if (host) {
+        icon.src =
+          `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+      } else {
+        iconWrap.classList.add("fallback");
+      }
+
+      iconWrap.append(icon, fallback);
+      card.appendChild(iconWrap);
+
+      const heading = document.createElement("h2");
+      const link = document.createElement("a");
+
+      link.href = r.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = r.title || r.url;
+
+      heading.appendChild(link);
+      card.appendChild(heading);
+
+      addText(card, "div", r.url, "result-url");
+
+      if (r.content) {
+        addText(card, "p", r.content);
+      }
+
+      addText(
+        card,
+        "span",
+        `امتیاز: ${r.score} | موتورهای مؤثر: ${r.engines.join(", ")}`,
+        "result-engine"
       );
 
-      const engineData = {};
+      resultsBox.appendChild(card);
+    }
 
-      for (const item of settled) {
-        if (item.data) {
-          engineData[item.engine] = item.data;
+    /* نمایش نتایج و هشدارهای موتورهای جست‌وجو */
+    function renderVisible() {
+      resultsBox.replaceChildren();
 
-          for (const warning of (item.data.unresponsive_engines || [])) {
-            currentWarnings.push({
-              engine: item.engine,
-              reason: Array.isArray(warning)
-                ? warning.join(": ")
-                : String(warning)
-            });
-          }
-        } else {
-          currentWarnings.push({
-            engine: item.engine,
-            reason: item.error || "پاسخ دریافت نشد"
-          });
-        }
+      preparedResults
+        .slice(0, visibleCount)
+        .forEach(renderOneResult);
+
+      if (currentWarnings.length) {
+        const messages = currentWarnings.map(
+          x => `${x.engine}: ${x.reason}`
+        );
+
+        addText(
+          resultsBox,
+          "div",
+          "برخی موتورهای جست‌وجو پاسخ نداده‌اند: " +
+            messages.join("؛ "),
+          "warning"
+        );
       }
 
-      preparedResults = mergeAndRank(engineData);
-      visibleCount = Math.min(INITIAL_LIMIT, preparedResults.length);
+      showMoreButton.hidden =
+        visibleCount >= preparedResults.length ||
+        visibleCount >= MAX_RESULTS;
+    }
 
-      statusBox.textContent = preparedResults.length
-        ? ""
-        : "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
+    showMoreButton.addEventListener("click", () => {
+      visibleCount = Math.min(
+        visibleCount + 4,
+        MAX_RESULTS,
+        preparedResults.length
+      );
 
       renderVisible();
+      statusBox.textContent = "";
+    });
 
-      if (!preparedResults.length && currentWarnings.length) {
-        statusBox.textContent =
-          "موتورهای جست‌وجو پاسخ ندادند. چند لحظه صبر کن و دوباره امتحان کن.";
+    /* ارسال درخواست به موتور جست‌وجو */
+    async function searchEngine(query, engine) {
+      const url = new URL(API);
+
+      url.searchParams.set("q", query);
+      url.searchParams.set("engines", engine);
+      url.searchParams.set("format", "json");
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    } catch (err) {
-      console.error("Shiraali Search error:", err);
+
+      return response.json();
+    }
+
+    /* ادغام و رتبه‌بندی نتایج */
+    function mergeAndRank(engineData) {
+      const merged = new Map();
+      let stable = 0;
+
+      for (const engine of ENGINES) {
+        const data = engineData[engine];
+
+        if (!data) continue;
+
+        const list = Array.isArray(data.results)
+          ? data.results
+          : [];
+
+        list.forEach((result, index) => {
+          const url = normalizedUrl(result.url);
+
+          if (!url) return;
+
+          let item = merged.get(url);
+
+          if (!item) {
+            item = {
+              ...result,
+              url,
+              score: 0,
+              engines: [],
+              ranks: {},
+              _stable: stable++
+            };
+
+            merged.set(url, item);
+          }
+
+          if (item.engines.includes(engine)) return;
+
+          item.engines.push(engine);
+          item.ranks[engine] = index + 1;
+
+          const rank = index + 1;
+
+          if (rank <= 5) {
+            item.score += WEIGHTS[engine][rank - 1];
+          }
+
+          if (!item.title && result.title) {
+            item.title = result.title;
+          }
+
+          if (!item.content && result.content) {
+            item.content = result.content;
+          }
+        });
+      }
+
+      return [...merged.values()]
+        .sort((a, b) =>
+          b.score - a.score ||
+          (a.ranks.duckduckgo || Infinity) -
+            (b.ranks.duckduckgo || Infinity) ||
+          (a.ranks.bing || Infinity) -
+            (b.ranks.bing || Infinity) ||
+          (a.ranks.yandex || Infinity) -
+            (b.ranks.yandex || Infinity) ||
+          a._stable - b._stable
+        )
+        .slice(0, MAX_RESULTS);
+    }
+
+    /* اجرای جست‌وجو */
+    searchForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const query = queryInput.value.trim();
+
+      if (!query) return;
+
+      submitButton.disabled = true;
+      showMoreButton.hidden = true;
+      resultsBox.replaceChildren();
+
+      wikiImage.removeAttribute("src");
+      wikiImageWrap.classList.remove("visible");
+
+      loadWikipediaImage(query);
+
+      preparedResults = [];
+      visibleCount = 0;
+      currentWarnings = [];
 
       statusBox.textContent =
-        "دریافت نتایج ناموفق بود. ممکن است سرویس در حال بیدار شدن باشد یا دسترسی مرورگر مسدود شده باشد. چند لحظه صبر کن و دوباره امتحان کن.";
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
-</script>
+        "در حال جست‌وجو در DuckDuckGo، Bing و Yandex... " +
+        "بار اول ممکن است سرویس Render کمی دیر پاسخ دهد.";
+
+      try {
+        const settled = await Promise.all(
+          ENGINES.map(async engine => {
+            try {
+              return {
+                engine,
+                data: await searchEngine(query, engine)
+              };
+            } catch (error) {
+              return {
+                engine,
+                error: error.message
+              };
+            }
+          })
+        );
+
+        const engineData = {};
+
+        for (const item of settled) {
+          if (item.data) {
+            engineData[item.engine] = item.data;
+
+            for (
+              const warning of
+              (item.data.unresponsive_engines || [])
+            ) {
+              currentWarnings.push({
+                engine: item.engine,
+                reason: Array.isArray(warning)
+                  ? warning.join(": ")
+                  : String(warning)
+              });
+            }
+          } else {
+            currentWarnings.push({
+              engine: item.engine,
+              reason: item.error || "پاسخ دریافت نشد"
+            });
+          }
+        }
+
+        preparedResults = mergeAndRank(engineData);
+
+        visibleCount = Math.min(
+          INITIAL_LIMIT,
+          preparedResults.length
+        );
+
+        statusBox.textContent = preparedResults.length
+          ? ""
+          : "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
+
+        renderVisible();
+
+        if (
+          !preparedResults.length &&
+          currentWarnings.length
+        ) {
+          statusBox.textContent =
+            "موتورهای جست‌وجو پاسخ ندادند. " +
+            "چند لحظه صبر کن و دوباره امتحان کن.";
+        }
+      } catch (error) {
+        console.error("Shiraali Search error:", error);
+
+        statusBox.textContent =
+          "دریافت نتایج ناموفق بود. ممکن است سرویس در حال " +
+          "بیدار شدن باشد یا دسترسی مرورگر مسدود شده باشد. " +
+          "چند لحظه صبر کن و دوباره امتحان کن.";
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
+```
