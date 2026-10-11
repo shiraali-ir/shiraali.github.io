@@ -375,7 +375,7 @@
   const API = "https://shiraali-search.onrender.com/search";
 
   const INITIAL_LIMIT = 5;
-  const MAX_RESULTS = 9;
+  const MAX_RESULTS = 11;
 
   const ENGINES = ["duckduckgo", "bing", "yandex"];
 
@@ -614,7 +614,7 @@
 
   showMoreButton.addEventListener("click", () => {
     visibleCount = Math.min(
-      visibleCount + 4,
+      visibleCount + 6,
       MAX_RESULTS,
       preparedResults.length
     );
