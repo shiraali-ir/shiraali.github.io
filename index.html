@@ -231,7 +231,18 @@
       color: var(--muted);
     }
 
-    #clockWrap.holiday { background: rgba(255, 60, 60, .07); }
+    #clockWrap {
+      position: relative;
+      background: var(--card);
+    }
+
+    #clockWrap.holiday::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 60, 60, .08);
+      pointer-events: none;
+    }
 
     /* اسلاید تصویری وضعیت آب‌وهوا */
     .weather-image-panel {
