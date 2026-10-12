@@ -236,6 +236,59 @@
       background: var(--card);
     }
 
+    /* کادر مسئلهٔ ریاضی: فقط پاسخ */
+    #mathWrap { background: var(--card); }
+
+    .math-answer {
+      padding: 34px 18px;
+      direction: ltr;
+      text-align: center;
+      font-size: clamp(40px, 10vw, 80px);
+      font-weight: 700;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    /* کادر ۲ (غذا): ارزش غذایی */
+    #nutritionWrap { background: var(--card); }
+
+    .nutrition-panel {
+      padding: 20px;
+      text-align: right;
+    }
+
+    .nutrition-title {
+      margin: 0 0 4px;
+      font-size: 19px;
+      line-height: 1.8;
+    }
+
+    .nutrition-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .nutrition-calories {
+      margin: 12px 0 16px;
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .nutrition-section {
+      margin: 16px 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .nutrition-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
     #clockWrap.holiday::after {
       content: "";
       position: absolute;
@@ -573,6 +626,16 @@
       <div id="clockBox"></div>
     </div>
 
+    <!-- مسئلهٔ ریاضی: تنها کادر نمایش‌داده‌شده، فقط پاسخ -->
+    <div id="mathWrap" class="wiki-image-wrap" aria-label="پاسخ">
+      <div id="mathBox"></div>
+    </div>
+
+    <!-- کادر ۲ (برای جست‌وجوی خوراکی): ارزش غذایی -->
+    <div id="nutritionWrap" class="wiki-image-wrap" aria-label="ارزش غذایی">
+      <div id="nutritionBox"></div>
+    </div>
+
     <!-- کادر ۳: تصویر آب‌وهوا -->
     <div id="weatherImageWrap" class="wiki-image-wrap"
       aria-label="تصویر وضعیت آب‌وهوا">
@@ -630,6 +693,10 @@
   const weatherImageBox = document.getElementById("weatherImageBox");
   const clockWrap = document.getElementById("clockWrap");
   const clockBox = document.getElementById("clockBox");
+  const mathWrap = document.getElementById("mathWrap");
+  const mathBox = document.getElementById("mathBox");
+  const nutritionWrap = document.getElementById("nutritionWrap");
+  const nutritionBox = document.getElementById("nutritionBox");
 
   let preparedResults = [];
   let visibleCount = 0;
@@ -1366,7 +1433,317 @@
       }
     }
 
+    /* راه دوم: نام انگلیسی مکان را از ویکی‌پدیای فارسی بگیر و با آن جست‌وجو کن
+       (برای املاهای متفاوت فارسی مثل «لوس آنجلس» و «لس‌آنجلس») */
+    const englishName = await getEnglishNameFromWikipedia(placeQuery);
+
+    if (englishName) {
+      try {
+        const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+        url.searchParams.set("name", englishName);
+        url.searchParams.set("count", "10");
+        url.searchParams.set("language", "en");
+        url.searchParams.set("format", "json");
+
+        const response = await fetch(url.toString());
+
+        if (response.ok) {
+          const data = await response.json();
+          const wanted = normalizePlaceName(englishName);
+
+          const place = (data.results || []).find(item =>
+            normalizePlaceName(item.name || "") === wanted &&
+            Number.isFinite(item.latitude) && Number.isFinite(item.longitude)
+          );
+
+          if (place) {
+            return {
+              name: placeQuery,
+              latitude: place.latitude,
+              longitude: place.longitude,
+              country: place.country || "",
+              countryCode: place.country_code || "",
+              timezone: place.timezone || "",
+              isCountry: place.feature_code === "PCLI"
+            };
+          }
+        }
+      } catch (error) {
+        console.warn("English place lookup failed:", error);
+      }
+    }
+
     return null;
+  }
+
+  /* ---------- کادر ۲ برای خوراکی‌ها: ارزش غذایی (USDA FoodData Central) ---------- */
+
+  /* برای استفادهٔ جدی یک کلید رایگان از https://fdc.nal.usda.gov/api-key-signup بگیر */
+  const USDA_API_KEY = "DEMO_KEY";
+
+  /* [نام, شمارهٔ ماده در USDA (به ترتیب اولویت), نیاز روزانه (واحد: mg یا µg)] */
+  const VITAMINS = [
+    ["ویتامین A", [320], 900], ["ویتامین C", [401], 90], ["ویتامین D", [328], 20],
+    ["ویتامین E", [323], 15], ["ویتامین K", [430], 120],
+    ["ویتامین B1 (تیامین)", [404], 1.2], ["ویتامین B2 (ریبوفلاوین)", [405], 1.3],
+    ["ویتامین B3 (نیاسین)", [406], 16], ["ویتامین B5", [410], 5],
+    ["ویتامین B6", [415], 1.7], ["ویتامین B9 (فولات)", [435, 417], 400],
+    ["ویتامین B12", [418], 2.4]
+  ];
+
+  const MINERALS = [
+    ["کلسیم", [301], 1300], ["آهن", [303], 18], ["منیزیم", [304], 420],
+    ["فسفر", [305], 1250], ["پتاسیم", [306], 4700], ["سدیم", [307], 2300],
+    ["روی", [309], 11], ["مس", [312], 0.9], ["منگنز", [315], 2.3],
+    ["سلنیوم", [317], 55]
+  ];
+
+  function nutrientValue(food, numbers) {
+    const list = food.foodNutrients || [];
+
+    for (const number of numbers) {
+      const item = list.find(n => String(n.nutrientNumber) === String(number));
+      const value = Number(item?.value);
+
+      if (item && Number.isFinite(value)) return value;
+    }
+
+    return null;
+  }
+
+  async function loadNutrition(originalQuery, sequence) {
+    const q = normalizePlaceName(originalQuery);
+
+    if (!q || q.length > 30 || q.split(" ").length > 3 || /[\d:/@]/.test(q)) return null;
+
+    let english = /[\u0600-\u06FF]/.test(q) ? await getEnglishNameFromWikipedia(q) : q;
+    if (sequence !== searchSequence || !english) return null;
+
+    english = english.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
+    if (!english) return null;
+
+    const url = new URL("https://api.nal.usda.gov/fdc/v1/foods/search");
+    url.searchParams.set("api_key", USDA_API_KEY);
+    url.searchParams.set("query", english);
+    url.searchParams.set("dataType", "Foundation,SR Legacy,Survey (FNDDS)");
+    url.searchParams.set("pageSize", "15");
+
+    const response = await fetch(url.toString());
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (sequence !== searchSequence) return null;
+
+    const base = english.replace(/(ies|es|s)$/, "");
+    const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp("\\b" + escaped + "[a-z]{0,3}\\b", "i");
+    const rank = { "Foundation": 0, "SR Legacy": 1, "Survey (FNDDS)": 2 };
+
+    const food = (data.foods || [])
+      .filter(item => re.test(item.description || "") && item.foodNutrients?.length)
+      .sort((a, b) => (rank[a.dataType] ?? 3) - (rank[b.dataType] ?? 3))[0];
+
+    return food ? { food, english } : null;
+  }
+
+  function nutritionMetric(label, value) {
+    return weatherMetric(label, value);
+  }
+
+  function percentText(value) {
+    return value >= 10 ? Math.round(value) + "٪" : (Math.round(value * 10) / 10) + "٪";
+  }
+
+  function renderNutrition(result, displayName) {
+    const food = result.food;
+    const panel = document.createElement("div");
+    panel.className = "nutrition-panel";
+
+    addText(panel, "h2", displayName, "nutrition-title");
+    addText(panel, "div", `${food.description} | مقادیر برای ۱۰۰ گرم`, "nutrition-sub");
+
+    const kcal = nutrientValue(food, [208, 957, 958]);
+    if (kcal != null) {
+      addText(panel, "div", `🔥 ${Math.round(kcal)} کالری`, "nutrition-calories");
+    }
+
+    /* ترکیب به درصد وزنی */
+    const sodium = nutrientValue(food, [307]);
+    const composition = [
+      ["💧 آب", nutrientValue(food, [255])],
+      ["🥩 پروتئین", nutrientValue(food, [203])],
+      ["🧈 چربی", nutrientValue(food, [204])],
+      ["🍞 کربوهیدرات", nutrientValue(food, [205])],
+      ["🍬 قند", nutrientValue(food, [269, 269.3])],
+      ["🌾 فیبر", nutrientValue(food, [291])],
+      ["🧂 نمک (از سدیم)", sodium == null ? null : sodium * 2.5 / 1000]
+    ].filter(item => item[1] != null);
+
+    if (composition.length) {
+      addText(panel, "div", "ترکیب (درصد وزنی)", "nutrition-section");
+      const grid = document.createElement("div");
+      grid.className = "weather-grid";
+      composition.forEach(([label, value]) => grid.appendChild(nutritionMetric(label, percentText(value))));
+      panel.appendChild(grid);
+    }
+
+    const addDaily = (title, list) => {
+      const items = list
+        .map(([label, numbers, daily]) => [label, nutrientValue(food, numbers), daily])
+        .filter(item => item[1] != null && item[1] > 0);
+
+      if (!items.length) return;
+
+      addText(panel, "div", title, "nutrition-section");
+      const grid = document.createElement("div");
+      grid.className = "weather-grid";
+      items.forEach(([label, value, daily]) =>
+        grid.appendChild(nutritionMetric(label, percentText(value / daily * 100))));
+      panel.appendChild(grid);
+    };
+
+    addDaily("ویتامین‌ها (درصد نیاز روزانه)", VITAMINS);
+    addDaily("مواد معدنی (درصد نیاز روزانه)", MINERALS);
+
+    const note = addText(panel, "div", "", "nutrition-note");
+    note.append("منبع: USDA FoodData Central. درصد نیاز روزانه بر پایهٔ مقادیر مرجع FDA است و ترکیب‌ها میانگین‌اند، نه دستور ساخت یک محصول یا غذای مشخص.");
+
+    nutritionBox.replaceChildren(panel);
+    nutritionWrap.classList.add("visible");
+  }
+
+  /* ---------- مسئلهٔ ریاضی ---------- */
+
+  /* ارزیابی امن (بدون eval). اگر عبارت ریاضی نباشد، null برمی‌گرداند. */
+  function evaluateMath(input) {
+    let s = String(input || "").trim();
+    if (!s) return null;
+
+    const persianOut = /[۰-۹٠-٩]/.test(s);
+
+    s = s
+      .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+      .replace(/٫/g, ".")
+      .replace(/[×✕]/g, "*")
+      .replace(/÷/g, "/")
+      .replace(/[−–—]/g, "-")
+      .replace(/\*\*/g, "^")
+      .replace(/=\s*\??\s*$/, "")
+      .trim();
+
+    s = s.replace(/(?<=[\d)])\s*[xX]\s*(?=[\d(])/g, "*");
+
+    if (!/^[\d+\-*/().^\s]+$/.test(s)) return null;
+    if (!/\d/.test(s) || !/[+\-*/^]/.test(s.replace(/^\s*[+-]/, ""))) return null;
+
+    /* تاریخ، بازهٔ سال و شمارهٔ تلفن (مثل 2024-2025 یا 021-12345) محاسبه نمی‌شوند */
+    if (/^\d{3,}(-\d+)+$/.test(s) || /^\d+(-\d{4,})+$/.test(s)) return null;
+
+    const tokens = s.match(/\d+\.?\d*|\.\d+|[+\-*/^()]/g) || [];
+    if (tokens.join("") !== s.replace(/\s+/g, "")) return null;
+
+    let pos = 0;
+    const peek = () => tokens[pos];
+    const fail = () => { throw new Error("bad expression"); };
+
+    function expr() {
+      let value = term();
+      while (peek() === "+" || peek() === "-") {
+        const op = tokens[pos++];
+        const right = term();
+        value = op === "+" ? value + right : value - right;
+      }
+      return value;
+    }
+
+    function term() {
+      let value = unary();
+      while (peek() === "*" || peek() === "/") {
+        const op = tokens[pos++];
+        const right = unary();
+        value = op === "*" ? value * right : value / right;
+      }
+      return value;
+    }
+
+    function unary() {
+      if (peek() === "-") { pos++; return -unary(); }
+      if (peek() === "+") { pos++; return unary(); }
+      return power();
+    }
+
+    function power() {
+      const base = primary();
+      if (peek() === "^") { pos++; return Math.pow(base, unary()); }
+      return base;
+    }
+
+    function primary() {
+      const token = tokens[pos++];
+      if (token === undefined) fail();
+      if (token === "(") {
+        const value = expr();
+        if (tokens[pos++] !== ")") fail();
+        return value;
+      }
+      const number = Number(token);
+      if (!Number.isFinite(number)) fail();
+      return number;
+    }
+
+    try {
+      const result = expr();
+      if (pos !== tokens.length || !Number.isFinite(result)) return null;
+
+      let text = String(parseFloat(result.toPrecision(12)));
+      if (persianOut) text = text.replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]).replace(/\./g, "٫");
+
+      return text;
+    } catch {
+      return null;
+    }
+  }
+
+  function renderMath(answer) {
+    mathBox.replaceChildren();
+    addText(mathBox, "div", answer, "math-answer");
+    mathWrap.classList.add("visible");
+  }
+
+  function resetMath() {
+    mathBox.replaceChildren();
+    mathWrap.classList.remove("visible");
+  }
+
+  function resetNutrition() {
+    nutritionBox.replaceChildren();
+    nutritionWrap.classList.remove("visible");
+  }
+
+  async function getEnglishNameFromWikipedia(title) {
+    try {
+      const api = new URL("https://fa.wikipedia.org/w/api.php");
+      api.searchParams.set("action", "query");
+      api.searchParams.set("titles", title);
+      api.searchParams.set("redirects", "1");
+      api.searchParams.set("prop", "langlinks");
+      api.searchParams.set("lllang", "en");
+      api.searchParams.set("format", "json");
+      api.searchParams.set("origin", "*");
+
+      const response = await fetch(api.toString());
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      const pages = Object.values(data.query?.pages || {});
+      const link = pages.find(page => page.langlinks?.length)?.langlinks[0];
+
+      return link?.["*"] || null;
+    } catch (error) {
+      console.warn("Wikipedia name lookup failed:", error);
+      return null;
+    }
   }
 
   async function fetchWeather(place) {
@@ -1856,6 +2233,18 @@
     resetGallery();
     resetWeatherImage();
     resetClock();
+    resetNutrition();
+    resetMath();
+
+    /* مسئلهٔ ریاضی: فقط یک کادر با پاسخ نمایش داده می‌شود و جست‌وجوی دیگری انجام نمی‌شود */
+    const mathAnswer = evaluateMath(originalQuery);
+
+    if (mathAnswer !== null) {
+      statusBox.textContent = "";
+      renderMath(mathAnswer);
+      submitButton.disabled = false;
+      return;
+    }
 
     try {
       /* مرحلهٔ ۱: فقط ویکی‌پدیا */
@@ -1873,8 +2262,9 @@
 
       /* مرحلهٔ ۲ و ۳: شناسایی مکان، ساعت و مناسبت، سپس هواشناسی (فقط برای جست‌وجوهای مکانی) */
 
+      let weatherPlace = null;
+
       if (!domain && !target.directUrl) {
-        let weatherPlace = null;
 
         try {
           weatherPlace = await findWeatherPlace(originalQuery);
@@ -1907,6 +2297,22 @@
             console.warn("Weather request failed:", error);
             weatherData = null;
           }
+        }
+      }
+
+      if (thisSearch !== searchSequence) return;
+
+      /* کادر ۲ برای خوراکی‌ها: ارزش غذایی (فقط اگر مکان یا سایت نبود) */
+      if (!weatherPlace && !domain && !target.directUrl) {
+        try {
+          const nutrition = await loadNutrition(originalQuery, thisSearch);
+
+          if (thisSearch !== searchSequence) return;
+
+          if (nutrition) renderNutrition(nutrition, originalQuery);
+        } catch (error) {
+          console.warn("Nutrition lookup failed:", error);
+          resetNutrition();
         }
       }
 
