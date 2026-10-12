@@ -640,6 +640,60 @@
   let galleryIndex = 0;
   let galleryReady = false; // فلش‌ها فقط پس از مرحلهٔ ۵ مجازند
   let clockTimer = null;
+  let embassyResults = [];
+
+  /* ---------- نتایج سفارت‌خانه‌ها (کادر ۵ به بعد) ---------- */
+
+  const EMBASSY_MAX_AGE_DAYS = 365;
+  const EMBASSY_MAX_RESULTS = 12;
+  /* اگر موتور جست‌وجو تاریخ انتشار نداد: false = نمایش داده نشود، true = بدون تاریخ نمایش داده شود */
+  const EMBASSY_ALLOW_UNDATED = false;
+
+  /* نام فارسی کشور (نرمال‌شده) → وب‌سایت سفارت آن کشور در ایران.
+     آدرس‌ها را پیش از استفاده بررسی کن و کشورهای دیگر را خودت اضافه کن. */
+  const EMBASSY_SITES = {
+    "آمریکا": "ir.usembassy.gov",
+    "ایالات متحده": "ir.usembassy.gov",
+    "ایالات متحده آمریکا": "ir.usembassy.gov",
+    "آلمان": "teheran.diplo.de",
+    "فرانسه": "ir.ambafrance.org",
+    "ژاپن": "ir.emb-japan.go.jp",
+    "ترکیه": "tahran.be.mfa.gov.tr",
+    "ایتالیا": "ambteheran.esteri.it",
+    "روسیه": "iran.mid.ru",
+    "چین": "ir.china-embassy.gov.cn",
+    "هند": "eoitehran.gov.in",
+    "استرالیا": "iran.embassy.gov.au",
+    "اسپانیا": "exteriores.gob.es/Embajadas/Teheran",
+    "اتریش": "bmeia.gv.at/oeb-teheran",
+    "سوئیس": "eda.admin.ch/teheran"
+  };
+
+  const EMBASSY_KEYWORDS = ["ویزا", "روادید", "دانشجو", "دانشجوی", "دانشگاه", "کار", "بورس", "بورسیه"];
+
+  const EMBASSY_KEYWORD_RE =
+    /(?<![\u0600-\u06FF])(ویزا|روادید|دانشجو(?:ی|یان)?|دانشگاه|کار|بورس|بورسیه)(?![\u0600-\u06FF])/;
+
+  /* نام انگلیسی کشور (حروف کوچک) → وب‌سایت وزارت خارجه (mfa) و ایمیگریشن (imm).
+     آدرس‌ها از حافظه نوشته شده‌اند؛ پیش از استفاده بررسی کن و کشورهای دیگر را اضافه کن. */
+  const GOV_SITES = {};
+  [
+    [["united states", "usa", "us", "united states of america"], { mfa: "state.gov", imm: "uscis.gov" }],
+    [["canada"], { mfa: "international.gc.ca", imm: "canada.ca/en/immigration-refugees-citizenship" }],
+    [["australia"], { mfa: "dfat.gov.au", imm: "immi.homeaffairs.gov.au" }],
+    [["new zealand"], { mfa: "mfat.govt.nz", imm: "immigration.govt.nz" }],
+    [["germany"], { mfa: "auswaertiges-amt.de/en", imm: "bamf.de/EN" }],
+    [["france"], { mfa: "diplomatie.gouv.fr/en", imm: "france-visas.gouv.fr" }],
+    [["japan"], { mfa: "mofa.go.jp", imm: "isa.go.jp/en" }],
+    [["turkey", "türkiye", "turkiye"], { mfa: "mfa.gov.tr", imm: "goc.gov.tr" }],
+    [["netherlands"], { mfa: "netherlandsandyou.nl", imm: "ind.nl/en" }],
+    [["sweden"], { mfa: "government.se", imm: "migrationsverket.se/en" }],
+    [["india"], { mfa: "mea.gov.in", imm: "boi.gov.in" }],
+    [["china"], { mfa: "fmprc.gov.cn/eng", imm: "en.nia.gov.cn" }]
+  ].forEach(([names, cfg]) => names.forEach(name => { GOV_SITES[name] = cfg; }));
+
+  const GOV_KEYWORDS = ["iran", "iranian"];
+  const GOV_KEYWORD_RE = /\b(iran|iranian|iranians)\b/i;
 
   const KNOWN_PLACES = {
     "تهران": { name: "تهران", latitude: 35.6892, longitude: 51.3890, country: "ایران", countryCode: "IR", timezone: "Asia/Tehran" },
@@ -1493,6 +1547,112 @@
     }
   }
 
+  /*
+   * جست‌وجوی عمومی در چند وب‌سایت مشخص:
+   * فقط صفحه‌های همان وب‌سایت، دارای کلیدواژه، حداکثر ۳۶۵ روز از انتشار، جدیدترین اول.
+   */
+  async function collectSiteResults(sites, keywords, keywordRe, requirePersian, sequence) {
+    const parsedSites = sites.map(item => {
+      const [host, ...pathParts] = item.domain.toLowerCase().split("/");
+      return {
+        domain: item.domain,
+        label: item.label,
+        host,
+        basePath: pathParts.length ? "/" + pathParts.join("/") : ""
+      };
+    });
+
+    const jobs = [];
+
+    for (const site of parsedSites) {
+      const query = `site:${site.domain} (${keywords.join(" OR ")})`;
+
+      for (const engine of ENGINES) {
+        for (const category of [null, "news"]) {
+          jobs.push(
+            searchEngine(query, engine, category)
+              .then(data => (Array.isArray(data.results) ? data.results : [])
+                .map(r => ({ r, site })))
+              .catch(() => [])
+          );
+        }
+      }
+    }
+
+    const lists = await Promise.all(jobs);
+    if (sequence !== searchSequence) return [];
+
+    const now = Date.now();
+    const maxAge = EMBASSY_MAX_AGE_DAYS * 86400000;
+    const merged = new Map();
+
+    for (const { r, site } of lists.flat()) {
+      const url = normalizedUrl(r.url);
+      if (!url) continue;
+
+      /* فقط صفحه‌های خود همان وب‌سایت */
+      const parsed = new URL(url);
+      const urlHost = parsed.hostname;
+      if (urlHost !== site.host && !urlHost.endsWith("." + site.host)) continue;
+      if (site.basePath && !parsed.pathname.toLowerCase().startsWith(site.basePath)) continue;
+
+      /* کلیدواژه (و در صورت نیاز فارسی بودن مطلب) */
+      const text = `${r.title || ""} ${r.content || ""}`
+        .replace(/ي/g, "ی").replace(/ك/g, "ک");
+      if (requirePersian && !/[\u0600-\u06FF]/.test(text)) continue;
+      if (!keywordRe.test(text)) continue;
+
+      /* شرط ۳۶۵ روز */
+      let time = Date.parse(r.publishedDate || r.published_date || "");
+      if (Number.isNaN(time)) {
+        if (!EMBASSY_ALLOW_UNDATED) continue;
+        time = null;
+      } else if (now - time > maxAge) {
+        continue;
+      }
+
+      const existing = merged.get(url);
+
+      if (!existing || (existing.time == null && time != null)) {
+        merged.set(url, {
+          url,
+          title: typeof r.title === "string" ? r.title.trim() : "",
+          content: r.content || "",
+          time,
+          embassy: true,
+          sourceLabel: site.label
+        });
+      }
+    }
+
+    /* جدیدترین اول؛ مطالب بدون تاریخ آخر */
+    return [...merged.values()]
+      .sort((a, b) => (b.time ?? -Infinity) - (a.time ?? -Infinity))
+      .slice(0, EMBASSY_MAX_RESULTS);
+  }
+
+  /* نام فارسی کشور → سفارت */
+  async function collectEmbassyResults(originalQuery, sequence) {
+    const site = EMBASSY_SITES[normalizePlaceName(originalQuery)];
+    if (!site) return [];
+
+    return collectSiteResults(
+      [{ domain: site, label: "سفارت" }],
+      EMBASSY_KEYWORDS, EMBASSY_KEYWORD_RE, true, sequence
+    );
+  }
+
+  /* نام انگلیسی کشور → وزارت خارجه و ایمیگریشن (مطالب دارای iran / iranian) */
+  async function collectGovResults(originalQuery, sequence) {
+    const cfg = GOV_SITES[normalizePlaceName(originalQuery)];
+    if (!cfg) return [];
+
+    const sites = [{ domain: cfg.mfa, label: "وزارت خارجه" }];
+    if (cfg.imm) sites.push({ domain: cfg.imm, label: "ایمیگریشن" });
+
+    return collectSiteResults(sites, GOV_KEYWORDS, GOV_KEYWORD_RE, false, sequence);
+  }
+
   function mergeAndRank(groups, directUrl) {
     const merged = new Map();
     let stable = 0;
@@ -1606,7 +1766,11 @@
     addText(
       card,
       "span",
-      `امتیاز: ${r.score} | منابع: ${r.engines.join(", ")}`,
+      r.embassy
+        ? `${r.sourceLabel || "سفارت"} | ${r.time != null
+            ? "تاریخ انتشار: " + new Date(r.time).toLocaleDateString("fa-IR")
+            : "تاریخ نامشخص"}`
+        : `امتیاز: ${r.score} | منابع: ${r.engines.join(", ")}`,
       "result-engine"
     );
 
@@ -1623,6 +1787,8 @@
     if (weatherData) {
       renderWeatherCards(weatherData);
     }
+
+    embassyResults.forEach(renderOneResult);
 
     preparedResults.slice(0, visibleCount).forEach(renderOneResult);
 
@@ -1682,6 +1848,7 @@
     resultsBox.replaceChildren();
 
     preparedResults = [];
+    embassyResults = [];
     visibleCount = 0;
     currentWarnings = [];
     weatherData = null;
@@ -1748,6 +1915,25 @@
       /* مرحلهٔ ۴: نمایش کارت جزئیات هواشناسی (در صورت وجود) */
 
       renderVisible();
+
+      /* نتایج سفارت (نام فارسی کشور) یا وزارت خارجه و ایمیگریشن (نام انگلیسی کشور): کادر ۵ به بعد */
+      if (!domain && !target.directUrl) {
+        try {
+          const [embassyList, govList] = await Promise.all([
+            collectEmbassyResults(originalQuery, thisSearch),
+            collectGovResults(originalQuery, thisSearch)
+          ]);
+
+          embassyResults = [...embassyList, ...govList];
+        } catch (error) {
+          console.warn("Embassy search failed:", error);
+          embassyResults = [];
+        }
+
+        if (thisSearch !== searchSequence) return;
+
+        if (embassyResults.length) renderVisible();
+      }
 
       /* مرحلهٔ ۵: نتایج متنی؛ جست‌وجوی تصاویر هنوز آغاز نشده است. */
       const groups = [];
