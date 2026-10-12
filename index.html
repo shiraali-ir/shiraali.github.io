@@ -1492,9 +1492,12 @@
           const data = await response.json();
           const wanted = normalizePlaceName(englishName);
 
+          /* فقط شهر بزرگ، استان/ایالت یا کشور؛ تا نام میوه‌هایی مثل Banana یا Apple به روستایی هم‌نام تبدیل نشوند */
           const place = (data.results || []).find(item =>
             normalizePlaceName(item.name || "") === wanted &&
-            Number.isFinite(item.latitude) && Number.isFinite(item.longitude)
+            Number.isFinite(item.latitude) && Number.isFinite(item.longitude) &&
+            ((item.population || 0) >= 100000 ||
+              ["PCLI", "ADM1", "ADM2"].includes(item.feature_code))
           );
 
           if (place) {
@@ -1557,7 +1560,14 @@
 
     if (!q || q.length > 30 || q.split(" ").length > 3 || /[\d:/@]/.test(q)) return null;
 
-    let english = /[\u0600-\u06FF]/.test(q) ? await getEnglishNameFromWikipedia(q) : q;
+    let english = q;
+
+    if (/[\u0600-\u06FF]/.test(q)) {
+      const raw = String(originalQuery).trim().replace(/ي/g, "ی").replace(/ك/g, "ک");
+      english = await getEnglishNameFromWikipedia(raw);
+      if (!english && raw !== q) english = await getEnglishNameFromWikipedia(q);
+    }
+
     if (sequence !== searchSequence || !english) return null;
 
     english = english.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
@@ -1570,7 +1580,12 @@
     url.searchParams.set("pageSize", "15");
 
     const response = await fetch(url.toString());
-    if (!response.ok) return null;
+
+    if (!response.ok) {
+      throw new Error(response.status === 429
+        ? "سقف مصرف کلید DEMO_KEY تمام شده است"
+        : `خطای ${response.status}`);
+    }
 
     const data = await response.json();
     if (sequence !== searchSequence) return null;
@@ -2528,6 +2543,7 @@
           if (nutrition) renderNutrition(nutrition, originalQuery);
         } catch (error) {
           console.warn("Nutrition lookup failed:", error);
+          currentWarnings.push({ engine: "ارزش غذایی", reason: error?.message || "پاسخ دریافت نشد" });
           resetNutrition();
         }
       }
