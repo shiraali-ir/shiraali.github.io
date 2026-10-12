@@ -236,6 +236,40 @@
       background: var(--card);
     }
 
+    /* کادر ترجمه: سه خط */
+    #translateWrap { background: var(--card); }
+
+    .translate-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 30px 18px;
+      text-align: center;
+    }
+
+    .translate-main {
+      font-size: clamp(34px, 8vw, 64px);
+      font-weight: 700;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .translate-latin {
+      direction: ltr;
+      font-size: clamp(20px, 4vw, 30px);
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .translate-fa {
+      direction: rtl;
+      font-size: clamp(20px, 4vw, 30px);
+      line-height: 1.6;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
     /* کادر مسئلهٔ ریاضی: فقط پاسخ */
     #mathWrap { background: var(--card); }
 
@@ -626,6 +660,11 @@
       <div id="clockBox"></div>
     </div>
 
+    <!-- ترجمهٔ واژه: تنها کادر نمایش‌داده‌شده -->
+    <div id="translateWrap" class="wiki-image-wrap" aria-label="ترجمه">
+      <div id="translateBox"></div>
+    </div>
+
     <!-- مسئلهٔ ریاضی: تنها کادر نمایش‌داده‌شده، فقط پاسخ -->
     <div id="mathWrap" class="wiki-image-wrap" aria-label="پاسخ">
       <div id="mathBox"></div>
@@ -693,6 +732,8 @@
   const weatherImageBox = document.getElementById("weatherImageBox");
   const clockWrap = document.getElementById("clockWrap");
   const clockBox = document.getElementById("clockBox");
+  const translateWrap = document.getElementById("translateWrap");
+  const translateBox = document.getElementById("translateBox");
   const mathWrap = document.getElementById("mathWrap");
   const mathBox = document.getElementById("mathBox");
   const nutritionWrap = document.getElementById("nutritionWrap");
@@ -1612,6 +1653,158 @@
     nutritionWrap.classList.add("visible");
   }
 
+  /* ---------- ترجمهٔ واژه («سیب به ژاپنی») ---------- */
+
+  /* نام فارسی زبان → کد زبان */
+  const TRANSLATE_LANGS = {};
+  [
+    ["انگلیسی", "en"], ["عربی", "ar"], ["ژاپنی", "ja"], ["فرانسوی", "fr"], ["فرانسه", "fr"],
+    ["آلمانی", "de"], ["اسپانیایی", "es"], ["اسپانیولی", "es"], ["ایتالیایی", "it"],
+    ["روسی", "ru"], ["ترکی", "tr"], ["ترکی استانبولی", "tr"], ["چینی", "zh-CN"],
+    ["کره‌ای", "ko"], ["هندی", "hi"], ["پرتغالی", "pt"], ["هلندی", "nl"],
+    ["سوئدی", "sv"], ["یونانی", "el"], ["عبری", "iw"], ["اردو", "ur"], ["کردی", "ku"],
+    ["آذری", "az"], ["ارمنی", "hy"], ["لاتین", "la"], ["لهستانی", "pl"],
+    ["اوکراینی", "uk"], ["تایلندی", "th"], ["ویتنامی", "vi"], ["اندونزیایی", "id"],
+    ["فنلاندی", "fi"], ["نروژی", "no"], ["دانمارکی", "da"], ["چکی", "cs"],
+    ["مجاری", "hu"], ["رومانیایی", "ro"], ["بلغاری", "bg"], ["صربی", "sr"],
+    ["فیلیپینی", "tl"], ["بنگالی", "bn"], ["تاجیکی", "tg"], ["ازبکی", "uz"],
+    ["پشتو", "ps"], ["گرجی", "ka"]
+  ].forEach(([name, code]) => { TRANSLATE_LANGS[normalizePlaceName(name)] = code; });
+
+  const RTL_LANGS = ["ar", "iw", "ur", "ps"];
+
+  function parseTranslationRequest(input) {
+    const q = normalizePlaceName(input)
+      .replace(/^(ترجمه(?: ی)?|معنی)\s+/, "");
+
+    const match = q.match(/^(.{1,60}?)\s+به\s+(?:زبان\s+)?(\S+(?:\s\S+)?)$/);
+    if (!match) return null;
+
+    const lang = TRANSLATE_LANGS[match[2].trim()];
+    if (!lang) return null;
+
+    return { text: match[1].trim(), lang };
+  }
+
+  /* تلفظ تقریبی فارسی از روی نوشتار لاتین (قاعده‌محور؛ دقیق نیست) */
+  function latinToPersian(text) {
+    const t = String(text).toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/ß/g, "ss").replace(/[ʿʾ'’`ʻ]/g, "");
+
+    const digraphs = [
+      ["sh", "ش"], ["ch", "چ"], ["kh", "خ"], ["zh", "ژ"], ["gh", "غ"], ["ph", "ف"],
+      ["th", "ث"], ["ng", "نگ"], ["ck", "ک"], ["ee", "ی"], ["oo", "و"], ["ou", "او"],
+      ["ai", "ای"], ["ay", "ای"], ["au", "او"], ["aa", "ا"], ["ii", "ی"], ["uu", "و"]
+    ];
+
+    const single = {
+      a: "ا", b: "ب", c: "ک", d: "د", e: "", f: "ف", g: "گ", h: "ه", i: "ی",
+      j: "ج", k: "ک", l: "ل", m: "م", n: "ن", o: "و", p: "پ", q: "ق", r: "ر",
+      s: "س", t: "ت", u: "و", v: "و", w: "و", x: "کس", y: "ی", z: "ز"
+    };
+
+    const initialVowel = { a: "ا", e: "ا", i: "ای", o: "او", u: "او" };
+
+    return t.split(/(\s+)/).map(word => {
+      if (/^\s*$/.test(word)) return word;
+
+      let out = "";
+      let i = 0;
+
+      while (i < word.length) {
+        const pair = word.slice(i, i + 2);
+        const digraph = digraphs.find(item => item[0] === pair);
+
+        if (digraph) {
+          out += digraph[1];
+          i += 2;
+          continue;
+        }
+
+        const ch = word[i];
+
+        if (i === 0 && initialVowel[ch]) {
+          out += initialVowel[ch];
+        } else if (ch === "c" && "eiy".includes(word[i + 1] || "")) {
+          out += "س";
+        } else if (ch === "y" && i === 0) {
+          out += "ی";
+        } else if (single[ch] !== undefined) {
+          out += single[ch];
+        } else if (!/[a-z]/.test(ch)) {
+          out += ch;
+        }
+
+        i++;
+      }
+
+      return out.replace(/([^\d])\1+/g, "$1");
+    }).join("");
+  }
+
+  async function fetchTranslation(request, sequence) {
+    const url = new URL("https://translate.googleapis.com/translate_a/single");
+    url.searchParams.set("client", "gtx");
+    url.searchParams.set("sl", "auto");
+    url.searchParams.set("tl", request.lang);
+    url.searchParams.append("dt", "t");
+    url.searchParams.append("dt", "rm");
+    url.searchParams.set("q", request.text);
+
+    const response = await fetch(url.toString());
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (sequence !== searchSequence) return null;
+
+    const segments = Array.isArray(data?.[0]) ? data[0] : [];
+    const translation = segments.map(item => item?.[0] || "").join("").trim();
+    if (!translation) return null;
+
+    const romanization = segments.find(item => item && item[0] == null && item[2])?.[2];
+
+    let latin = null;
+    if (romanization) {
+      latin = String(romanization).trim();
+    } else if (/[A-Za-z\u00C0-\u024F]/.test(translation)) {
+      latin = translation;
+    }
+
+    return {
+      lang: request.lang,
+      translation,
+      latin,
+      persian: latin ? latinToPersian(latin) : null
+    };
+  }
+
+  function renderTranslation(result) {
+    translateBox.replaceChildren();
+
+    const panel = document.createElement("div");
+    panel.className = "translate-panel";
+
+    const main = addText(panel, "div", result.translation, "translate-main");
+    main.dir = RTL_LANGS.includes(result.lang) ? "rtl" : "ltr";
+    main.lang = result.lang;
+
+    /* برای زبان‌های لاتین‌نویس، خط دوم با خط اول یکی است و تکرار نمی‌شود */
+    if (result.latin && result.latin.toLowerCase() !== result.translation.toLowerCase()) {
+      addText(panel, "div", result.latin, "translate-latin");
+    }
+
+    if (result.persian) addText(panel, "div", result.persian, "translate-fa");
+
+    translateBox.appendChild(panel);
+    translateWrap.classList.add("visible");
+  }
+
+  function resetTranslation() {
+    translateBox.replaceChildren();
+    translateWrap.classList.remove("visible");
+  }
+
   /* ---------- مسئلهٔ ریاضی ---------- */
 
   /* ارزیابی امن (بدون eval). اگر عبارت ریاضی نباشد، null برمی‌گرداند. */
@@ -2235,6 +2428,7 @@
     resetClock();
     resetNutrition();
     resetMath();
+    resetTranslation();
 
     /* مسئلهٔ ریاضی: فقط یک کادر با پاسخ نمایش داده می‌شود و جست‌وجوی دیگری انجام نمی‌شود */
     const mathAnswer = evaluateMath(originalQuery);
@@ -2244,6 +2438,28 @@
       renderMath(mathAnswer);
       submitButton.disabled = false;
       return;
+    }
+
+    /* ترجمهٔ واژه: فقط یک کادر نمایش داده می‌شود و جست‌وجوی دیگری انجام نمی‌شود */
+    const translationRequest = parseTranslationRequest(originalQuery);
+
+    if (translationRequest) {
+      try {
+        const translated = await fetchTranslation(translationRequest, thisSearch);
+
+        if (thisSearch !== searchSequence) return;
+
+        if (translated) {
+          statusBox.textContent = "";
+          renderTranslation(translated);
+          submitButton.disabled = false;
+          return;
+        }
+      } catch (error) {
+        console.warn("Translation failed:", error);
+      }
+
+      if (thisSearch !== searchSequence) return;
     }
 
     try {
