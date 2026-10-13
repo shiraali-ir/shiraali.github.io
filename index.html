@@ -1205,7 +1205,7 @@
   }
 
   function renderGallery(images) {
-    galleryImages = images.slice(0, 11);
+    galleryImages = images.slice(0, 12);
     galleryIndex = 0;
 
     if (!galleryImages.length) {
@@ -1233,8 +1233,48 @@
     showGalleryImage();
   });
 
-  async function loadWikipediaImage(query, sequence) {
-    for (const lang of ["fa", "en"]) {
+  /* ---------- ویکی‌پدیا: یک درخواست برای متن و عکس (از همان مقالهٔ مرتبط) ---------- */
+
+  let wikiCard = null;
+  const wikiPageCache = new Map();
+
+  function stripParens(t) {
+    return normalizePlaceName(String(t || "").replace(/\s*\([^)]*\)\s*/g, " "));
+  }
+
+  async function wikiImageByTitle(lang, title) {
+    try {
+      const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+      api.searchParams.set("action", "query");
+      api.searchParams.set("titles", title);
+      api.searchParams.set("redirects", "1");
+      api.searchParams.set("prop", "pageimages");
+      api.searchParams.set("piprop", "thumbnail");
+      api.searchParams.set("pithumbsize", "900");
+      api.searchParams.set("format", "json");
+      api.searchParams.set("origin", "*");
+
+      const res = await fetch(api.toString());
+      if (!res.ok) return null;
+
+      const data = await res.json();
+      const pg = Object.values(data.query?.pages || {})[0];
+      return pg?.thumbnail?.source || null;
+    } catch (error) {
+      console.warn("Wikipedia image by title failed:", error);
+      return null;
+    }
+  }
+
+  async function getWikiPage(query, sequence) {
+    const q = normalizePlaceName(query);
+    if (!q || q.split(" ").length > 4 || q.length > 50) return null;
+    if (wikiPageCache.has(q)) return wikiPageCache.get(q);
+
+    const langs = /[\u0600-\u06FF]/.test(q) ? ["fa", "en"] : ["en", "fa"];
+    let found = null;
+
+    for (const lang of langs) {
       if (sequence !== searchSequence) return null;
 
       try {
@@ -1243,63 +1283,16 @@
         api.searchParams.set("generator", "search");
         api.searchParams.set("gsrsearch", query);
         api.searchParams.set("gsrnamespace", "0");
-        api.searchParams.set("gsrlimit", "10");
-        api.searchParams.set("prop", "pageimages");
+        api.searchParams.set("gsrlimit", "6");
+        api.searchParams.set("prop", "extracts|pageimages|pageprops|info|langlinks");
+        api.searchParams.set("lllang", "en");
+        api.searchParams.set("exintro", "1");
+        api.searchParams.set("explaintext", "1");
+        api.searchParams.set("exlimit", "max");
         api.searchParams.set("piprop", "thumbnail");
         api.searchParams.set("pithumbsize", "900");
-        api.searchParams.set("format", "json");
-        api.searchParams.set("origin", "*");
-
-        const response = await fetch(api.toString());
-        if (!response.ok) continue;
-
-        const data = await response.json();
-        if (sequence !== searchSequence) return null;
-
-        const pages = Object.values(data.query?.pages || {});
-        const page = pages.find(item => item.thumbnail?.source);
-
-        if (page?.thumbnail?.source) {
-          return {
-            src: page.thumbnail.source,
-            source: "ویکی‌پدیا",
-            score: 100000,
-            rank: 0
-          };
-        }
-      } catch (error) {
-        console.warn(`Wikipedia image lookup (${lang}) failed:`, error);
-      }
-    }
-
-    return null;
-  }
-
-
-  /* ---------- کادر متنی ویکی‌پدیا (نخستین کادر نتایج) ---------- */
-
-  let wikiCard = null;
-
-  function stripParens(t) {
-    return normalizePlaceName(String(t || "").replace(/\s*\([^)]*\)\s*/g, " "));
-  }
-
-  async function loadWikipediaSummary(query, sequence) {
-    const q = normalizePlaceName(query);
-    if (!q || q.split(" ").length > 4 || q.length > 50) return null;
-
-    const langs = /[\u0600-\u06FF]/.test(q) ? ["fa", "en"] : ["en", "fa"];
-
-    for (const lang of langs) {
-      if (sequence !== searchSequence) return null;
-
-      try {
-        const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
-        api.searchParams.set("action", "query");
-        api.searchParams.set("list", "search");
-        api.searchParams.set("srsearch", query);
-        api.searchParams.set("srnamespace", "0");
-        api.searchParams.set("srlimit", "4");
+        api.searchParams.set("ppprop", "disambiguation");
+        api.searchParams.set("inprop", "url");
         api.searchParams.set("format", "json");
         api.searchParams.set("origin", "*");
 
@@ -1309,34 +1302,51 @@
         const data = await res.json();
         if (sequence !== searchSequence) return null;
 
-        for (const hit of data.query?.search || []) {
-          const title = stripParens(hit.title);
+        /* ترتیب واقعی نتایج جست‌وجو با فیلد index است */
+        const pages = Object.values(data.query?.pages || {})
+          .sort((x, y) => (x.index || 0) - (y.index || 0));
 
-          /* عنوان مقاله باید با عبارت جست‌وجو مرتبط باشد (نه یک نتیجهٔ بی‌ربط) */
+        for (const pg of pages) {
+          const title = stripParens(pg.title);
+
+          /* عنوان مقاله باید با عبارت جست‌وجو مرتبط باشد */
           if (!title || !(q.includes(title) || title.includes(q))) continue;
+          if (pg.pageprops && "disambiguation" in pg.pageprops) continue;
+          if (!pg.extract) continue;
 
-          const sres = await fetch(
-            `https://${lang}.wikipedia.org/api/rest_v1/page/summary/` +
-            encodeURIComponent(hit.title.replace(/ /g, "_"))
-          );
-          if (!sres.ok) continue;
-
-          const sum = await sres.json();
-          if (sequence !== searchSequence) return null;
-          if (sum.type === "disambiguation" || !sum.extract) continue;
-
-          return {
-            url: sum.content_urls?.desktop?.page || `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`,
-            title: sum.title || hit.title,
-            content: sum.extract
+          found = {
+            url: pg.fullurl || `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title)}`,
+            title: pg.title,
+            content: pg.extract.trim().split("\n")[0],
+            image: pg.thumbnail?.source || null,
+            enTitle: pg.langlinks?.[0]?.["*"] || (lang === "en" ? pg.title : null)
           };
+          break;
         }
       } catch (error) {
-        console.warn(`Wikipedia summary (${lang}) failed:`, error);
+        console.warn(`Wikipedia lookup (${lang}) failed:`, error);
       }
+
+      if (found) break;
     }
 
-    return null;
+    /* اگر مقالهٔ مرتبط عکس نداشت، عکس مقالهٔ انگلیسی همان موضوع را بگیر */
+    if (found && !found.image && found.enTitle) {
+      found.image = await wikiImageByTitle("en", found.enTitle);
+    }
+
+    wikiPageCache.set(q, found);
+    return found;
+  }
+
+  async function loadWikipediaImage(query, sequence) {
+    const pg = await getWikiPage(query, sequence);
+    return pg?.image ? { src: pg.image, source: "ویکی‌پدیا", score: 100000, rank: 0 } : null;
+  }
+
+  async function loadWikipediaSummary(query, sequence) {
+    const pg = await getWikiPage(query, sequence);
+    return pg ? { url: pg.url, title: pg.title, content: pg.content } : null;
   }
 
   function renderWikiCard(card) {
@@ -1450,7 +1460,7 @@
       finalImages.push(wikiImageResult);
     }
 
-    const maxGalleryImages = wikiImageResult?.src ? 11 : 10;
+    const maxGalleryImages = wikiImageResult?.src ? 12 : 11;
 
     for (const image of rankedImages) {
       if (finalImages.length >= maxGalleryImages) break;
@@ -2690,6 +2700,9 @@
     u.searchParams.set("q", query);
     u.searchParams.set("engines", engine);
     u.searchParams.set("format", "json");
+
+    /* زبان نتایج مطابق زبان عبارت جست‌وجو */
+    if (/[\u0600-\u06FF]/.test(query)) u.searchParams.set("language", "fa");
 
     if (category) {
       u.searchParams.set("categories", category);
