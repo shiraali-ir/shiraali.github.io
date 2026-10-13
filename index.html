@@ -1275,6 +1275,92 @@
     return null;
   }
 
+
+  /* ---------- کادر متنی ویکی‌پدیا (نخستین کادر نتایج) ---------- */
+
+  let wikiCard = null;
+
+  function stripParens(t) {
+    return normalizePlaceName(String(t || "").replace(/\s*\([^)]*\)\s*/g, " "));
+  }
+
+  async function loadWikipediaSummary(query, sequence) {
+    const q = normalizePlaceName(query);
+    if (!q || q.split(" ").length > 4 || q.length > 50) return null;
+
+    const langs = /[\u0600-\u06FF]/.test(q) ? ["fa", "en"] : ["en", "fa"];
+
+    for (const lang of langs) {
+      if (sequence !== searchSequence) return null;
+
+      try {
+        const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+        api.searchParams.set("action", "query");
+        api.searchParams.set("list", "search");
+        api.searchParams.set("srsearch", query);
+        api.searchParams.set("srnamespace", "0");
+        api.searchParams.set("srlimit", "4");
+        api.searchParams.set("format", "json");
+        api.searchParams.set("origin", "*");
+
+        const res = await fetch(api.toString());
+        if (!res.ok) continue;
+
+        const data = await res.json();
+        if (sequence !== searchSequence) return null;
+
+        for (const hit of data.query?.search || []) {
+          const title = stripParens(hit.title);
+
+          /* عنوان مقاله باید با عبارت جست‌وجو مرتبط باشد (نه یک نتیجهٔ بی‌ربط) */
+          if (!title || !(q.includes(title) || title.includes(q))) continue;
+
+          const sres = await fetch(
+            `https://${lang}.wikipedia.org/api/rest_v1/page/summary/` +
+            encodeURIComponent(hit.title.replace(/ /g, "_"))
+          );
+          if (!sres.ok) continue;
+
+          const sum = await sres.json();
+          if (sequence !== searchSequence) return null;
+          if (sum.type === "disambiguation" || !sum.extract) continue;
+
+          return {
+            url: sum.content_urls?.desktop?.page || `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`,
+            title: sum.title || hit.title,
+            content: sum.extract
+          };
+        }
+      } catch (error) {
+        console.warn(`Wikipedia summary (${lang}) failed:`, error);
+      }
+    }
+
+    return null;
+  }
+
+  function renderWikiCard(card) {
+    const el = document.createElement("article");
+    el.className = "result";
+
+    const icon = createSiteIcon(card.url);
+    if (icon) el.appendChild(icon);
+
+    const h = document.createElement("h2");
+    const a = document.createElement("a");
+    a.href = card.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = card.title;
+    h.appendChild(a);
+    el.appendChild(h);
+
+    addText(el, "p", card.content);
+    addText(el, "span", "منبع: ویکی‌پدیا", "result-engine");
+
+    resultsBox.appendChild(el);
+  }
+
   function extractImageUrl(result) {
     const candidates = [
       result.img_src,
@@ -2879,6 +2965,9 @@
       renderWeatherCards(weatherData);
     }
 
+    /* کارت ویکی‌پدیا: زیر کادرهای تصویر، ساعت، آب‌وهوا و ارزش غذایی؛ بالای نتایج موتورها */
+    if (wikiCard) renderWikiCard(wikiCard);
+
     embassyResults.forEach(renderOneResult);
 
     preparedResults.slice(0, visibleCount).forEach(renderOneResult);
@@ -2946,6 +3035,7 @@
     visibleCount = 0;
     currentWarnings = [];
     weatherData = null;
+    wikiCard = null;
 
     resetGallery();
     resetWeatherImage();
@@ -3028,6 +3118,10 @@
     try {
       /* مرحلهٔ ۱: فقط ویکی‌پدیا */
 
+      const wikiTextPromise = (!domain && !target.directUrl)
+        ? loadWikipediaSummary(searchQuery, thisSearch).catch(() => null)
+        : Promise.resolve(null);
+
       const wikiImageResult = await loadWikipediaImage(
         searchQuery,
         thisSearch
@@ -3038,6 +3132,10 @@
       if (wikiImageResult?.src) {
         renderGallery([wikiImageResult]);
       }
+
+      wikiCard = await wikiTextPromise;
+
+      if (thisSearch !== searchSequence) return;
 
       if (operator) renderOperator(operator);
 
