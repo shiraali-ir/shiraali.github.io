@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پیش‌نمایش آزمایشی ماژول‌های Shiraali Search</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#172b4d;background:#eaf6ff}body{margin:0;padding:20px}main{max-width:900px;margin:auto}input,button{font:inherit;padding:12px;border:1px solid #b9d4e8;border-radius:14px}input{width:min(65%,520px)}button{cursor:pointer;background:#d6ecff}section{background:#fff;border:1px solid #cfe2f1;border-radius:22px;padding:16px;margin:16px 0;overflow-wrap:anywhere}.result{border:1px solid #d9e5ef;border-radius:16px;padding:12px;margin:10px 0}.result a{color:#0758a5}#gallery{max-width:100%;max-height:420px;display:block;margin:10px auto;border-radius:18px} .buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+</style>
+</head>
+<body><main>
+<h1>پیش‌نمایش آزمایشی ماژول‌ها</h1>
+<p>این صفحه برای آزمودن جداسازی بخش‌هاست؛ ظاهر نهایی سایت نیست و نسخهٔ زنده را تغییر نمی‌دهد.</p>
+<form id="searchForm"><input id="q" required placeholder="عبارت جست‌وجو"><button>جست‌وجو در همهٔ بخش‌ها</button></form>
+<section><h2>گرافیکی: ساعت و تاریخ</h2><div id="clock"></div><h3>آب‌وهوا (نمونهٔ مختصات تهران)</h3><div id="weather"></div></section>
+<section><h2>ویژه</h2><div id="special"></div></section>
+<section><h2>اجتماعی</h2><div id="social"></div></section>
+<section><h2>عمومی</h2><div id="general"></div></section>
+<section><h2>تصاویر</h2><div id="imageStatus"></div><img id="gallery" alt=""><div class="buttons"><button id="prev" type="button" hidden>تصویر قبلی</button><button id="next" type="button" hidden>تصویر بعدی</button></div></section>
+</main>
+<script type="module">
+import { startLocalClock, loadWeatherByCity } from './modules/graphical.js';
+import { loadSpecialSection } from './modules/special.js';
+import { loadSocialSection } from './modules/social.js';
+import { loadGeneralSection } from './modules/general.js';
+import { loadImageSection } from './modules/images.js';
+startLocalClock(document.querySelector('#clock'));
+loadWeatherByCity("Tehran",document.querySelector('#weather'));
+document.querySelector('#searchForm').addEventListener('submit', async e => {
+ e.preventDefault(); const q=document.querySelector('#q').value.trim(); if(!q)return;
+ const tasks=[
+  loadSpecialSection(q,document.querySelector('#special')),
+  loadSocialSection(q,document.querySelector('#social')),
+  loadGeneralSection(q,document.querySelector('#general')),
+  loadImageSection(q,document.querySelector('#gallery'),document.querySelector('#prev'),document.querySelector('#next'),document.querySelector('#imageStatus'))
+ ];
+ await Promise.allSettled(tasks);
+});
+</script></body></html>
