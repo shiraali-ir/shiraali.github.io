@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#dff2ff">
+<title>Shiraali Search</title>
+<meta name="description" content="جست‌وجوی یکپارچه Shiraali">
+<style>
+:root{color-scheme:light;--bg:#dff2ff;--text:#173650;--input:#fff;--border:#c5dbea;--button:#fff;--muted:#526b80;--accent:#1677c8;--card:rgba(255,255,255,.72);--shadow:0 6px 22px rgba(23,54,80,.16)}
+body.dark{color-scheme:dark;--bg:#0b3157;--text:#f4f9ff;--input:#102f4c;--border:#42627e;--button:#163e60;--muted:#c0d5e7;--accent:#238de0;--card:rgba(16,47,76,.8);--shadow:0 6px 22px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;transition:background .2s,color .2s}
+.theme-icon{width:25px;height:25px;display:block;flex:none}
+.theme{position:absolute;z-index:9999;top:8px;left:8px;width:42px;height:42px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer;appearance:none;-webkit-appearance:none}
+main{width:60%;margin:0 auto;padding:clamp(75px,12vh,120px) 0 45px;text-align:center}
+.logo{display:block;width:150px;height:150px;max-width:42vw;max-height:42vw;object-fit:contain;margin:0 auto 28px}
+.logo-link{display:block;width:fit-content;margin:0 auto;-webkit-tap-highlight-color:transparent}
+.search-form{width:100%;position:relative}
+#query::-webkit-search-cancel-button,#query::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+#query::-ms-clear{display:none}
+.correction{position:absolute;bottom:calc(100% + 6px);left:0;right:0;z-index:20;display:flex;align-items:center;min-height:56px;padding:5px 20px;border:0;border-radius:30px;background:var(--input);box-shadow:var(--shadow);color:var(--text);font-size:16px;text-align:right;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.correction[hidden]{display:none}
+.lex-panel{flex:1;padding:20px;text-align:right}
+.lex-title{margin:0 0 4px;font-size:19px;line-height:1.8}
+.lex-word{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:10px}
+.lex-main{font-size:clamp(26px,6vw,44px);font-weight:700;line-height:1.5;margin-bottom:8px}
+.lex-text{font-size:15px;line-height:2;white-space:pre-line;overflow-wrap:anywhere}
+.lex-link{display:inline-block;margin-top:10px;font-size:12px;color:var(--accent)}
+#lexWrap1,#lexWrap2{background:var(--card)}
+.search-box{display:flex;align-items:center;gap:10px;min-height:56px;padding:5px 15px 5px 5px;border:0;border-radius:30px;background:var(--input);box-shadow:var(--shadow)}
+.search-box:focus-within{box-shadow:0 8px 26px rgba(23,54,80,.24)}
+#query{flex:1;min-width:0;height:42px;border:0;outline:0;background:transparent;color:var(--text);font-size:16px;text-align:right}
+#query::placeholder{color:var(--muted)}
+.submit{flex-shrink:0;width:40px;height:40px;border:0;border-radius:50%;background:var(--accent);color:#fff;cursor:pointer;font-size:20px}
+.submit:disabled{opacity:.55;cursor:wait}
+#status{margin:22px 0 12px;color:var(--muted);font-size:14px;line-height:1.9}
+#results{text-align:right;margin-top:18px;width:100%}
+.results-section-title{margin:24px 0 14px;color:var(--text);font-size:17px;font-weight:700;line-height:1.8}
+.result{position:relative;width:100%;margin:0 0 18px;padding:17px 18px 17px 54px;border:0;border-radius:30px;background:var(--card);box-shadow:var(--shadow);overflow-wrap:anywhere}
+.result-site-icon{position:absolute;top:14px;left:14px;width:30px;height:30px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,.8);padding:2px}
+.wiki-image-wrap{display:none;position:relative;width:100%;aspect-ratio:16/9;margin:18px 0 22px;padding:0;text-align:center;border:0;border-radius:30px;background:transparent;box-shadow:var(--shadow);overflow:hidden;overflow:clip}
+.wiki-image-wrap.visible{display:flex}
+.wiki-image-wrap>*{flex:1 1 auto;position:relative;min-width:0;display:flex;flex-direction:column}
+.wiki-image-wrap>.wiki-gallery{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;flex-direction:row;align-items:center;justify-content:center;border-radius:inherit}
+.clock-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.clock-time{direction:ltr;font-size:clamp(40px,9vw,72px);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.clock-event{font-size:15px;line-height:1.9;color:var(--muted)}
+#clockWrap{background:var(--card)}
+#translateWrap{background:var(--card)}
+.translate-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.translate-main{font-size:clamp(34px,8vw,64px);font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+.translate-latin{direction:ltr;font-size:clamp(20px,4vw,30px);line-height:1.6;overflow-wrap:anywhere}
+.translate-fa{direction:rtl;font-size:clamp(20px,4vw,30px);line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+#mathWrap{background:var(--card)}
+.math-answer{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;direction:ltr;text-align:center;font-size:clamp(40px,10vw,80px);font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+#colorWrap{background:transparent}
+.color-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px;direction:ltr;text-align:center;font-weight:700;font-size:clamp(14px,3vw,24px);line-height:1.6}
+.color-panel .color-hex{font-size:clamp(28px,7vw,56px)}
+#nutritionWrap,#lexWrap1,#lexWrap2,#opWrap1{overflow:visible;aspect-ratio:auto}
+#nutritionWrap::before,#lexWrap1::before,#lexWrap2::before,#opWrap1::before{content:"";flex:0 0 0;width:0;padding-top:56.25%}
+#nutritionWrap{background:var(--card)}
+.nutrition-panel{padding:20px;text-align:right}
+.nutrition-title{margin:0 0 4px;font-size:19px;line-height:1.8}
+.nutrition-sub{color:var(--muted);font-size:13px;line-height:1.8}
+.nutrition-calories{margin:12px 0 16px;font-size:clamp(28px,6vw,42px);font-weight:700;line-height:1.4}
+.nutrition-section{margin:16px 0 8px;font-size:15px;font-weight:700}
+.nutrition-note{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.8}
+#clockWrap.holiday::after{content:"";position:absolute;inset:0;background:rgba(255,60,60,.08);pointer-events:none}
+.weather-image-panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px;color:#fff;background:linear-gradient(145deg,#368dcc,#153b66 78%);text-align:center;overflow:hidden}
+.weather-image-panel::before,.weather-image-panel::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.09);pointer-events:none}
+.weather-image-panel::before{width:280px;height:280px;top:-115px;right:-65px}
+.weather-image-panel::after{width:220px;height:220px;bottom:-115px;left:-45px}
+.weather-image-icon{position:relative;z-index:1;font-size:clamp(64px,14vw,130px);line-height:1.3;filter:drop-shadow(0 5px 8px rgba(0,0,0,.15))}
+.weather-image-place{position:relative;z-index:1;font-size:clamp(19px,3vw,27px);font-weight:700;line-height:1.7}
+.weather-image-temperature{position:relative;z-index:1;font-size:clamp(30px,6vw,46px);font-weight:700;direction:ltr}
+.weather-image-description{position:relative;z-index:1;font-size:16px;line-height:1.8}
+.wiki-image{display:block;position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center;margin:0;border-radius:inherit}
+.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:58px;padding:0;border:none;border-radius:0;background:transparent;box-shadow:none;color:#fff;font-family:Arial,sans-serif;font-size:48px;font-weight:400;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;text-shadow:0 1px 5px rgba(0,0,0,.65);appearance:none;-webkit-appearance:none}
+.wiki-image-wrap>.gallery-arrow,.gallery-arrow{width:44px;height:58px;inset:auto;top:50%;overflow:visible}
+.gallery-prev{right:12px;left:auto}
+.gallery-next{left:12px;right:auto}
+.gallery-arrow:focus-visible{outline:1px solid rgba(255,255,255,.7);outline-offset:-5px}
+.gallery-arrow[hidden]{display:none}
+.result h2{margin:0;font-size:18px;font-weight:600;line-height:1.7}
+.result h2 a{color:var(--accent);text-decoration:none}
+.result h2 a:hover{text-decoration:underline}
+.result p{margin:8px 0 0;font-size:14px;line-height:1.9;white-space:pre-line}
+.result-engine{display:inline-block;margin-top:10px;color:var(--muted);font-size:12px}
+.warning{margin:14px 0;padding:12px;border:0;border-radius:12px;background:var(--card);box-shadow:var(--shadow);color:var(--muted);font-size:13px;line-height:1.8;text-align:right}
+.weather-card{position:relative;width:100%;margin:0 0 18px;padding:20px;border:0;border-radius:30px;background:var(--card);box-shadow:var(--shadow);text-align:right;overflow:hidden}
+.weather-details-title{margin:0 0 14px;font-size:19px;line-height:1.8}
+.weather-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.weather-metric{padding:13px;border:0;border-radius:16px;background:rgba(127,127,127,.12);min-width:0}
+.weather-metric-label{color:var(--muted);font-size:13px;line-height:1.8}
+.weather-metric-value{margin-top:5px;font-size:17px;font-weight:700;overflow-wrap:anywhere;line-height:1.8}
+.weather-source{display:block;margin-top:14px;font-size:12px;color:var(--muted)}
+.weather-source a{color:var(--accent)}
+.more{display:inline-block;margin:15px 0 5px;padding:10px 18px;border:0;border-radius:22px;background:var(--button);box-shadow:var(--shadow);color:var(--text);text-decoration:none;cursor:pointer;font:inherit}
+.more:hover{filter:brightness(.97)}
+.more[hidden]{display:none}
+#opWrap1{background:var(--card)}
+.op-panel{flex:1;padding:20px;text-align:right}
+.op-title{margin:0 0 12px;font-size:19px;line-height:1.8}
+.op-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;background:rgba(127,127,127,.12)}
+.op-label{color:var(--muted);font-size:13px;line-height:1.8}
+.op-value{direction:ltr;font-size:clamp(18px,4vw,26px);font-weight:700}
+@media (max-width:700px){main{width:92%}.wiki-image-wrap{aspect-ratio:1/1}}
+@media (max-width:480px){
+main{padding-top:100px}
+.logo{margin-bottom:24px}
+.search-box{min-height:52px}
+.correction{min-height:52px}
+.gallery-arrow{width:38px;height:50px;font-size:42px}
+.gallery-prev{right:6px;left:auto}
+.gallery-next{left:6px;right:auto}
+.result{padding:14px 14px 14px 48px}
+.result-site-icon{top:12px;left:12px;width:27px;height:27px}
+.result h2{font-size:16px}
+.weather-card{padding:14px}
+.weather-grid{gap:8px}
+.weather-metric{padding:10px}
+}
+#googleCseWrap{width:100%;margin:22px auto 0;padding:18px;border-radius:30px;background:var(--card);box-shadow:var(--shadow);text-align:right;color:var(--text)}
+#googleCseWrap[hidden]{display:none!important}
+#googleCseTitle{margin:0 0 12px;font-size:17px;font-weight:700;color:var(--text)}
+#googleCseNote{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.9}
+#googleCseResults{min-height:20px;direction:ltr;text-align:left}
+#googleCseResults .gsc-control-cse{padding:0!important;border:0!important;background:transparent!important;font-family:Arial,Tahoma,sans-serif!important}
+#googleCseResults .gsc-result,#googleCseResults .gsc-webResult{border-color:var(--border)!important;background:transparent!important}
+#googleCseResults .gs-title,#googleCseResults .gs-title *{color:var(--accent)!important}
+#googleCseResults .gs-snippet,#googleCseResults .gsc-url-top,#googleCseResults .gsc-url-bottom{color:var(--text)!important}
+#googleCseResults .gsc-cursor-box{margin-top:14px!important}
+@media (max-width:700px){#nutritionWrap::before,#lexWrap1::before,#lexWrap2::before,#opWrap1::before{padding-top:100%}}
+#aiSection{text-align:right;margin:0}
+#aiSection[hidden],.ai-card[hidden]{display:none}
+.ai-title{display:flex;align-items:center;gap:8px;font-size:18px;margin:0 4px 10px}
+.ai-badge{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:1px 8px;margin-inline-start:auto}
+.ai-card{width:100%;margin:0 0 18px;padding:17px 18px;border:0;border-radius:30px;background:var(--card);box-shadow:var(--shadow);overflow-wrap:anywhere}
+.ai-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;margin-bottom:10px}
+.ai-model{font-size:11px;font-weight:400;color:var(--muted);margin-inline-start:auto;direction:ltr}
+.ai-text{font-size:14px;line-height:1.9;margin:0;white-space:pre-line}
+.ai-text sup a{color:var(--accent);text-decoration:none;font-size:12px;padding:0 2px}
+.ai-src{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ai-src a{font-size:12px;color:var(--accent);background:rgba(22,119,200,.08);border-radius:20px;padding:3px 10px;text-decoration:none}
+.ai-card.off{padding:10px 18px;opacity:.55;box-shadow:none;border:1px dashed var(--border)}
+.ai-card.off .ai-head{font-size:14px;font-weight:600;margin:0}
+.ai-skel{height:12px;border-radius:8px;background:linear-gradient(90deg,rgba(128,128,128,.12),rgba(128,128,128,.25),rgba(128,128,128,.12));margin:8px 0}
+.ai-skel.short{width:60%}
+.ai-foot{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--muted)}
+.ai-foot .ai-model{margin-inline-start:0;font-weight:400}
+.ai-note{margin-top:10px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+
+<body>
+<button class="theme" id="theme" type="button" aria-label="تغییر حالت روشن و تاریک" title="تغییر حالت روشن و تاریک">
+  <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/></svg>
+</button>
+
+<main>
+  <a class="logo-link" href="https://shiraali.ir/" aria-label="بارگذاری مجدد Shiraali">
+    <img class="logo" src="https://shiraali.ir/logo.png" alt="شیر با دست روی کره زمین">
+  </a>
+
+  <form class="search-form" id="searchForm">
+    <div id="correction" class="correction" role="button" tabindex="0" hidden></div>
+    <div class="search-box">
+      <input id="query" type="search" placeholder="جست‌وجو..." aria-label="عبارت جست‌وجو" autocomplete="off" required>
+      <button class="submit" id="submitButton" type="submit" aria-label="جست‌وجو">➜</button>
+    </div>
+  </form>
+
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <div id="wikiImageWrap" class="wiki-image-wrap" aria-label="گالری تصاویر مرتبط">
+    <div class="wiki-gallery">
+      <button id="galleryPrev" class="gallery-arrow gallery-prev" type="button" aria-label="عکس قبلی" title="عکس قبلی" hidden>‹</button>
+      <img id="wikiImage" class="wiki-image" alt="" loading="lazy" referrerpolicy="no-referrer">
+      <button id="galleryNext" class="gallery-arrow gallery-next" type="button" aria-label="عکس بعدی" title="عکس بعدی" hidden>›</button>
+    </div>
+  </div>
+
+  <div id="clockWrap" class="wiki-image-wrap" aria-label="ساعت و مناسبت‌ها"><div id="clockBox"></div></div>
+  <div id="colorWrap" class="wiki-image-wrap" aria-label="رنگ"><div id="colorBox"></div></div>
+  <div id="lexWrap1" class="wiki-image-wrap" aria-label="لغتنامه دهخدا"><div id="lexBox1"></div></div>
+  <div id="lexWrap2" class="wiki-image-wrap" aria-label="فرهنگ معین"><div id="lexBox2"></div></div>
+  <div id="translateWrap" class="wiki-image-wrap" aria-label="ترجمه"><div id="translateBox"></div></div>
+  <div id="mathWrap" class="wiki-image-wrap" aria-label="پاسخ"><div id="mathBox"></div></div>
+  <div id="nutritionWrap" class="wiki-image-wrap" aria-label="ارزش غذایی"><div id="nutritionBox"></div></div>
+  <div id="opWrap1" class="wiki-image-wrap" aria-label="کد و شماره‌های اپراتور"><div id="opBox1"></div></div>
+  <div id="weatherImageWrap" class="wiki-image-wrap" aria-label="تصویر وضعیت آب‌وهوا"><div id="weatherImageBox" class="wiki-gallery"></div></div>
+
+  <section id="aiSection" hidden aria-label="نتایج هوشواره"></section>
+
+  <section id="results" aria-label="نتایج جست‌وجو"></section>
+
+  <button id="showMore" class="more" type="button" hidden>نمایش نتایج بیشتر</button>
+
+  <section id="googleCseWrap" hidden aria-label="نتایج تکمیلی گوگل">
+    <h2 id="googleCseTitle">نتایج تکمیلی Google</h2>
+    <p id="googleCseNote">نتایج جست‌وجوی Google در این بخش جدا از نتایج اصلی نمایش داده می‌شوند.</p>
+    <div id="googleCseResults"></div>
+  </section>
+</main>
+
+<script>
+/* ============ پنج بک‌اند مستقل (در صورت نیاز آدرس‌ها را عوض کن) ============ */
+const BACKENDS = {
+  special: "https://shiraali-special.onrender.com/search",
+  embassy: "https://shiraali-embassy.onrender.com/search",
+  social:  "https://shiraali-social.onrender.com/search",
+  general: "https://shiraali-general.onrender.com/search",
+  images:  "https://shiraali-images.onrender.com/search",
+  graphics: "https://shiraali-graphics.onrender.com/",
+  generalBing:       "https://shiraali-general-bing.onrender.com/search",
+  generalYandex:     "https://shiraali-general-yandex.onrender.com/search",
+  generalDuckduckgo: "https://shiraali-general-duckduckgo.onrender.com/search",
+  generalStartpage:  "https://shiraali-general-startpage.onrender.com/search"
+};
+
+/* بخش جنرال: هر موتور سرور خودش را دارد. google و brave روی general می‌مانند. */
+const GENERAL_ENGINE_BACKEND = {
+  google:     BACKENDS.general,
+  brave:      BACKENDS.general,
+  bing:       BACKENDS.generalBing,
+  yandex:     BACKENDS.generalYandex,
+  duckduckgo: BACKENDS.generalDuckduckgo,
+  startpage:  BACKENDS.generalStartpage
+};
+
+/* بیدار کردن هر ۵ سرور هم‌زمان با باز شدن صفحه */
+Object.values(BACKENDS).forEach(url =>
+  fetch(url + "?q=wake&engines=bing&format=json", { headers: { Accept: "application/json" } })
+    .catch(() => {})
+);
+
+let slowTimer = null;
+
+const GOOGLE_CSE_ID = "PASTE_CSE_ID_HERE";
+
+const INITIAL_LIMIT = 11;
+const MAX_RESULTS = 22;
+
+const ENGINES = ["bing", "yandex"];
+const SECONDARY_ENGINES = ["duckduckgo", "google", "brave", "startpage"];
+
+const PRIORITY_SITES = [
+  { domain: "wikipedia.org", label: "Wikipedia" },
+  { domain: "zoomit.ir", label: "Zoomit" },
+  { domain: "iranintl.com", label: "Iran International" },
+  { domain: "radiofarda.com", label: "Radio Farda" },
+  { domain: "linkedin.com", label: "LinkedIn" },
+  { domain: "x.com", label: "X" },
+  { domain: "youtube.com", label: "YouTube" },
+  { domain: "instagram.com", label: "Instagram" },
+  { domain: "t.me", label: "Telegram" },
+  { domain: "facebook.com", label: "Facebook" },
+  { domain: "tiktok.com", label: "TikTok" }
+];
+
+const SOCIAL_DOMAINS = ["linkedin.com", "x.com", "youtube.com", "instagram.com", "t.me", "facebook.com", "tiktok.com"];
+const SOCIAL_SITES  = PRIORITY_SITES.filter(s => SOCIAL_DOMAINS.includes(s.domain));
+const SPECIAL_SITES = PRIORITY_SITES.filter(s => !SOCIAL_DOMAINS.includes(s.domain));
+
+const WEIGHTS = {
+  bing:       [5, 5, 4, 3, 2],
+  yandex:     [1, 1, 1, 1, 1],
+  duckduckgo: [5, 4, 3, 2, 1],
+  google:     [9, 9, 8, 7, 6],
+  brave:      [5, 4, 3, 2, 1],
+  startpage:  [5, 4, 3, 2, 1]
+};
+
+const SITE_ALIASES = [
+  { domain: "x.com", names: ["twitter", "توییتر", "تویتر", "x.com"] },
+  { domain: "youtube.com", names: ["youtube", "یوتیوب", "youtube.com"] },
+  { domain: "instagram.com", names: ["instagram", "اینستاگرام", "instagram.com"] },
+  { domain: "t.me", names: ["telegram", "تلگرام", "t.me"] },
+  { domain: "wikipedia.org", names: ["wikipedia", "ویکی‌پدیا", "ویکی پدیا", "wikipedia.org"] },
+  { domain: "facebook.com", names: ["facebook", "فیسبوک", "فیس‌بوک"] },
+  { domain: "reddit.com", names: ["reddit", "ردیت"] },
+  { domain: "github.com", names: ["github", "گیت‌هاب", "گیت هاب"] },
+  { domain: "linkedin.com", names: ["linkedin", "لینکدین"] },
+  { domain: "tiktok.com", names: ["tiktok", "تیک‌تاک", "تیک تاک"] },
+  { domain: "aparat.com", names: ["aparat", "آپارات"] }
+];
+
+const themeButton = document.getElementById("theme");
+const searchForm = document.getElementById("searchForm");
+const queryInput = document.getElementById("query");
+const submitButton = document.getElementById("submitButton");
+const statusBox = document.getElementById("status");
+const resultsBox = document.getElementById("results");
+const showMoreButton = document.getElementById("showMore");
+const googleCseWrap = document.getElementById("googleCseWrap");
+const googleCseResults = document.getElementById("googleCseResults");
+
+const wikiImageWrap = document.getElementById("wikiImageWrap");
+const wikiImage = document.getElementById("wikiImage");
+const galleryPrev = document.getElementById("galleryPrev");
+const galleryNext = document.getElementById("galleryNext");
+const weatherImageWrap = document.getElementById("weatherImageWrap");
+const weatherImageBox = document.getElementById("weatherImageBox");
+const clockWrap = document.getElementById("clockWrap");
+const clockBox = document.getElementById("clockBox");
+const translateWrap = document.getElementById("translateWrap");
+const translateBox = document.getElementById("translateBox");
+const mathWrap = document.getElementById("mathWrap");
+const mathBox = document.getElementById("mathBox");
+const colorWrap = document.getElementById("colorWrap");
+const colorBox = document.getElementById("colorBox");
+const nutritionWrap = document.getElementById("nutritionWrap");
+const nutritionBox = document.getElementById("nutritionBox");
+const correctionBox = document.getElementById("correction");
+const lexWraps = [document.getElementById("lexWrap1"), document.getElementById("lexWrap2")];
+const lexBoxes = [document.getElementById("lexBox1"), document.getElementById("lexBox2")];
+
+let preparedResults = [];
+let prioritySiteResults = [];
+let visibleCount = 0;
+let currentWarnings = [];
+let weatherData = null;
+let searchSequence = 0;
+let galleryImages = [];
+let galleryIndex = 0;
+let galleryReady = false;
+let clockTimer = null;
+let embassyResults = [];
+
+/* ---------- نتایج سفارت‌خانه‌ها ---------- */
+
+const EMBASSY_MAX_AGE_DAYS = 365;
+const EMBASSY_MAX_RESULTS = 12;
+const EMBASSY_ALLOW_UNDATED = false;
+
+const EMBASSY_SITES = {
+  "آمریکا": "ir.usembassy.gov",
+  "ایالات متحده": "ir.usembassy.gov",
+  "ایالات متحده آمریکا": "ir.usembassy.gov",
+  "آلمان": "teheran.diplo.de",
+  "فرانسه": "ir.ambafrance.org",
+  "ژاپن": "ir.emb-japan.go.jp",
+  "ترکیه": "tahran.be.mfa.gov.tr",
+  "ایتالیا": "ambteheran.esteri.it",
+  "روسیه": "iran.mid.ru",
+  "چین": "ir.china-embassy.gov.cn",
+  "هند": "eoitehran.gov.in",
+  "استرالیا": "iran.embassy.gov.au",
+  "اسپانیا": "exteriores.gob.es/Embajadas/Teheran",
+  "اتریش": "bmeia.gv.at/oeb-teheran",
+  "سوئیس": "eda.admin.ch/teheran"
+};
+
+const EMBASSY_KEYWORDS = ["ویزا", "روادید", "دانشجو", "دانشجوی", "دانشگاه", "کار", "بورس", "بورسیه"];
+
+const EMBASSY_KEYWORD_RE =
+  /(?<![\u0600-\u06FF])(ویزا|روادید|دانشجو(?:ی|یان)?|دانشگاه|کار|بورس|بورسیه)(?![\u0600-\u06FF])/;
+
+const GOV_SITES = {};
+[
+  [["united states", "usa", "us", "united states of america"], { mfa: "state.gov", imm: "uscis.gov" }],
+  [["canada"], { mfa: "international.gc.ca", imm: "canada.ca/en/immigration-refugees-citizenship" }],
+  [["australia"], { mfa: "dfat.gov.au", imm: "immi.homeaffairs.gov.au" }],
+  [["new zealand"], { mfa: "mfat.govt.nz", imm: "immigration.govt.nz" }],
+  [["germany"], { mfa: "auswaertiges-amt.de/en", imm: "bamf.de/EN" }],
+  [["france"], { mfa: "diplomatie.gouv.fr/en", imm: "france-visas.gouv.fr" }],
+  [["japan"], { mfa: "mofa.go.jp", imm: "isa.go.jp/en" }],
+  [["turkey", "türkiye", "turkiye"], { mfa: "mfa.gov.tr", imm: "goc.gov.tr" }],
+  [["netherlands"], { mfa: "netherlandsandyou.nl", imm: "ind.nl/en" }],
+  [["sweden"], { mfa: "government.se", imm: "migrationsverket.se/en" }],
+  [["india"], { mfa: "mea.gov.in", imm: "boi.gov.in" }],
+  [["china"], { mfa: "fmprc.gov.cn/eng", imm: "en.nia.gov.cn" }]
+].forEach(([names, cfg]) => names.forEach(name => { GOV_SITES[name] = cfg; }));
+
+const GOV_KEYWORDS = ["iran", "iranian"];
+const GOV_KEYWORD_RE = /\b(iran|iranian|iranians)\b/i;
+
+const KNOWN_PLACES = {
+  "تهران": { name: "تهران", latitude: 35.6892, longitude: 51.3890, country: "ایران", countryCode: "IR", timezone: "Asia/Tehran" },
+  "tehran": { name: "Tehran", latitude: 35.6892, longitude: 51.3890, country: "Iran", countryCode: "IR", timezone: "Asia/Tehran" },
+  "لندن": { name: "لندن", latitude: 51.5072, longitude: -0.1276, country: "بریتانیا", countryCode: "GB", timezone: "Europe/London" },
+  "london": { name: "London", latitude: 51.5072, longitude: -0.1276, country: "United Kingdom", countryCode: "GB", timezone: "Europe/London" },
+  "ایران": { name: "ایران — محدودهٔ مرکزی", latitude: 32.4279, longitude: 53.6880, country: "ایران", countryCode: "IR", timezone: "Asia/Tehran", isCountry: true },
+  "iran": { name: "Iran — Central Region", latitude: 32.4279, longitude: 53.6880, country: "Iran", countryCode: "IR", timezone: "Asia/Tehran", isCountry: true },
+  "ژاپن": { name: "ژاپن — محدودهٔ مرکزی", latitude: 36.2048, longitude: 138.2529, country: "ژاپن", countryCode: "JP", timezone: "Asia/Tokyo", isCountry: true },
+  "japan": { name: "Japan — Central Region", latitude: 36.2048, longitude: 138.2529, country: "Japan", countryCode: "JP", timezone: "Asia/Tokyo", isCountry: true },
+  "توکیو": { name: "توکیو", latitude: 35.6762, longitude: 139.6503, country: "ژاپن", countryCode: "JP", timezone: "Asia/Tokyo" },
+  "tokyo": { name: "Tokyo", latitude: 35.6762, longitude: 139.6503, country: "Japan", countryCode: "JP", timezone: "Asia/Tokyo" },
+  "نیویورک": { name: "نیویورک", latitude: 40.7128, longitude: -74.0060, country: "آمریکا", countryCode: "US", timezone: "America/New_York" },
+  "new york": { name: "New York", latitude: 40.7128, longitude: -74.0060, country: "United States", countryCode: "US", timezone: "America/New_York" },
+  "پاریس": { name: "پاریس", latitude: 48.8566, longitude: 2.3522, country: "فرانسه", countryCode: "FR", timezone: "Europe/Paris" },
+  "paris": { name: "Paris", latitude: 48.8566, longitude: 2.3522, country: "France", countryCode: "FR", timezone: "Europe/Paris" }
+};
+
+/* ---------- دادهٔ ساعت و مناسبت ---------- */
+
+const CAPITAL_TZ = {
+  IR: "Asia/Tehran", GB: "Europe/London", JP: "Asia/Tokyo",
+  US: "America/New_York", FR: "Europe/Paris", DE: "Europe/Berlin",
+  TR: "Europe/Istanbul", IQ: "Asia/Baghdad", AF: "Asia/Kabul",
+  SA: "Asia/Riyadh", AE: "Asia/Dubai", IN: "Asia/Kolkata",
+  RU: "Europe/Moscow", CN: "Asia/Shanghai", CA: "America/Toronto",
+  AU: "Australia/Sydney", IT: "Europe/Rome", ES: "Europe/Madrid"
+};
+
+const WEEKENDS = {
+  IR: [5], AF: [5], SA: [5, 6], EG: [5, 6], IQ: [5, 6],
+  KW: [5, 6], QA: [5, 6], JO: [5, 6], DZ: [5, 6], IL: [5, 6]
+};
+
+const IR_SOLAR = [
+  [1, 1, "نوروز", 1], [1, 2, "نوروز", 1], [1, 3, "نوروز", 1], [1, 4, "نوروز", 1],
+  [1, 12, "روز جمهوری اسلامی", 1], [1, 13, "سیزده‌به‌در", 1],
+  [3, 14, "رحلت امام خمینی", 1], [3, 15, "قیام ۱۵ خرداد", 1],
+  [11, 22, "پیروزی انقلاب اسلامی", 1], [12, 29, "ملی شدن صنعت نفت", 1]
+];
+
+const IR_HIJRI = [
+  [1, 9, "تاسوعا", 1], [1, 10, "عاشورا", 1], [2, 20, "اربعین", 1],
+  [2, 28, "رحلت پیامبر و شهادت امام حسن", 1], [2, 30, "شهادت امام رضا", 1],
+  [3, 17, "ولادت پیامبر و امام صادق", 1], [6, 3, "شهادت حضرت فاطمه", 1],
+  [7, 13, "ولادت امام علی", 1], [7, 27, "مبعث", 1],
+  [8, 15, "ولادت امام زمان", 1], [9, 21, "شهادت امام علی", 1],
+  [10, 1, "عید فطر", 1], [10, 2, "عید فطر", 1], [10, 25, "شهادت امام صادق", 1],
+  [12, 10, "عید قربان", 1], [12, 18, "عید غدیر", 1]
+];
+
+const LOCAL_EVENTS = {};
+
+function normalizePlaceName(value) {
+  return String(value || "").trim().toLocaleLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/‌/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+/* ---------- اولویت معانی کلمه‌های مبهم ---------- */
+
+const PRIMARY_MEANING = { "شیر": { kind: "animal", en: "lion", query: "شیر جنگل" } };
+
+const SHIR_TAP  = ["آب", "اتصالات", "آلات", "شیرآلات", "لوله", "حمام", "روشویی", "ظرفشویی"];
+const SHIR_MILK = ["خوراکی", "خرید", "فروش", "پاستوریزه", "گاو", "پرچرب", "بطری", "لیوان"];
+
+const PRODUCE = {
+  "موز": "banana", "سیب": "apple", "پرتغال": "orange", "هلو": "peach", "انار": "pomegranate",
+  "گیلاس": "cherry", "هندوانه": "watermelon", "خیار": "cucumber", "گوجه": "tomato",
+  "هویج": "carrot", "بادام": "almonds", "پسته": "pistachio", "گردو": "walnuts",
+  "کشمش": "raisins", "خرما": "dates", "انجیر": "figs", "توت": "mulberries"
+};
+
+const FOODS = {
+  "پیتزا": "pizza", "همبرگر": "hamburger", "برنج": "rice", "نان": "bread",
+  "پنیر": "cheese", "ماست": "yogurt", "تخم مرغ": "egg", "عسل": "honey"
+};
+
+function classifyQuery(input) {
+  const q = normalizePlaceName(input);
+  const words = q.split(" ").filter(Boolean);
+
+  if (words.includes("شیر")) {
+    if (words.some(w => SHIR_TAP.includes(w)))  return { kind: "plain", query: "شیر آب" };
+    if (words.some(w => SHIR_MILK.includes(w))) return { kind: "milk", en: "milk", query: "شیر گاو" };
+  }
+
+  if (words.length === 1 && PRIMARY_MEANING[q]) return PRIMARY_MEANING[q];
+
+  for (const w of words) if (PRODUCE[w]) return { kind: "produce", en: PRODUCE[w], single: words.length === 1 };
+  for (const w of words) if (FOODS[w])   return { kind: "food",    en: FOODS[w],   single: words.length === 1 };
+  if (FOODS[q]) return { kind: "food", en: FOODS[q], single: words.length === 1 };
+
+  return { kind: null };
+}
+
+themeButton.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  const dark = document.body.classList.contains("dark");
+
+  themeButton.innerHTML = dark
+    ? `<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.5" fill="#fff"/>
+        <g stroke="#fff" stroke-width="2" stroke-linecap="round">
+          <path d="M12 2v2.2M12 19.8V22"/>
+          <path d="M4.93 4.93l1.55 1.55M17.52 17.52l1.55 1.55"/>
+          <path d="M2 12h2.2M19.8 12H22"/>
+          <path d="M4.93 19.07l1.55-1.55M17.52 6.48l1.55-1.55"/>
+        </g>
+      </svg>`
+    : `<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/>
+      </svg>`;
+
+  document.querySelector('meta[name="theme-color"]')
+    .setAttribute("content", dark ? "#0b3157" : "#dff2ff");
+});
+
+/* ---------- ساعت و مناسبت ---------- */
+
+function partsInZone(date, tz, calendar) {
+  const fmt = new Intl.DateTimeFormat(
+    "en-u-nu-latn" + (calendar ? "-ca-" + calendar : ""),
+    { timeZone: tz, year: "numeric", month: "numeric", day: "numeric", weekday: "short" }
+  );
+  const o = {};
+  fmt.formatToParts(date).forEach(p => { o[p.type] = p.value; });
+  return { y: +o.year, m: +o.month, d: +o.day, weekday: o.weekday };
+}
+
+async function getTodayInfo(place, tz) {
+  const now = new Date();
+  const cc = (place.countryCode || "").toUpperCase();
+  const greg = partsInZone(now, tz);
+  const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(greg.weekday);
+  const events = [];
+  let holiday = (WEEKENDS[cc] || [0, 6]).includes(dow);
+
+  const add = (name, isHoliday) => {
+    if (name && !events.includes(name)) events.push(name);
+    if (isHoliday) holiday = true;
+  };
+
+  if (cc === "IR") {
+    const s = partsInZone(now, tz, "persian");
+    IR_SOLAR.forEach(([m, d, n, h]) => { if (m === s.m && d === s.d) add(n, h); });
+
+    const h = partsInZone(now, tz, "islamic-civil");
+    IR_HIJRI.forEach(([m, d, n, hol]) => { if (m === h.m && d === h.d) add(n, hol); });
+  } else if (cc) {
+    try {
+      const res = await gfetch(`https://date.nager.at/api/v3/PublicHolidays/${greg.y}/${cc}`);
+
+      if (res.ok) {
+        const iso = `${greg.y}-${String(greg.m).padStart(2, "0")}-${String(greg.d).padStart(2, "0")}`;
+        const list = await res.json();
+
+        list.forEach(item => {
+          if (item.date === iso && !item.counties) add(item.name, true);
+        });
+      }
+    } catch (error) {
+      console.warn("Holiday lookup failed:", error);
+    }
+  }
+
+  const local = LOCAL_EVENTS[normalizePlaceName(place.name)] || [];
+  local.forEach(([m, d, n]) => { if (m === greg.m && d === greg.d) add(n, false); });
+
+  return { events, holiday };
+}
+
+function resetClock() {
+  clearInterval(clockTimer);
+  clockTimer = null;
+  clockBox.replaceChildren();
+  clockWrap.classList.remove("visible", "holiday");
+}
+
+async function renderClock(place, weather) {
+  let tz = place.timezone || weather?.timezone;
+
+  if (place.isCountry && CAPITAL_TZ[place.countryCode]) {
+    tz = CAPITAL_TZ[place.countryCode];
+  }
+
+  if (!tz) return;
+
+  const info = await getTodayInfo(place, tz);
+
+  const panel = document.createElement("div");
+  panel.className = "clock-panel";
+
+  const timeEl = addText(panel, "div", "", "clock-time");
+  info.events.forEach(name => addText(panel, "div", name, "clock-event"));
+
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  });
+
+  const tick = () => { timeEl.textContent = fmt.format(new Date()); };
+
+  tick();
+  clearInterval(clockTimer);
+  clockTimer = setInterval(tick, 1000);
+
+  clockBox.replaceChildren(panel);
+  clockWrap.classList.toggle("holiday", info.holiday);
+  clockWrap.classList.add("visible");
+}
+
+/* ---------- گالری ---------- */
+
+function resetWeatherImage() {
+  weatherImageBox.replaceChildren();
+  weatherImageWrap.classList.remove("visible");
+}
+
+function renderWeatherImage(data) {
+  if (!data?.current) return;
+
+  const c = data.current;
+  const p = data.place;
+  const info = weatherCodeInfo(c.weather_code, c.is_day === 1);
+
+  const panel = document.createElement("div");
+  panel.className = "weather-image-panel";
+  panel.setAttribute("role", "img");
+  panel.setAttribute("aria-label", "تصویر وضعیت آب‌وهوا");
+
+  addText(panel, "div", info.icon, "weather-image-icon");
+  addText(panel, "div", `${p.name}${p.country ? "، " + p.country : ""}`, "weather-image-place");
+  addText(panel, "div", `${Math.round(c.temperature_2m)}°C`, "weather-image-temperature");
+  addText(panel, "div", info.text, "weather-image-description");
+
+  weatherImageBox.replaceChildren(panel);
+  weatherImageWrap.classList.add("visible");
+}
+
+function resetGallery() {
+  galleryImages = [];
+  galleryIndex = 0;
+  galleryReady = false;
+  wikiImage.onerror = null;
+  wikiImage.removeAttribute("src");
+  wikiImage.alt = "";
+  galleryPrev.hidden = true;
+  galleryNext.hidden = true;
+  wikiImageWrap.classList.remove("visible");
+}
+
+function showGalleryImage() {
+  if (!galleryImages.length) {
+    resetGallery();
+    return;
+  }
+
+  const item = galleryImages[galleryIndex];
+
+  wikiImage.onerror = () => {
+    item.failed = true;
+    renderGallery(galleryImages.filter(image => !image.failed));
+  };
+
+  wikiImage.src = item.src;
+  wikiImage.alt = "تصویر مرتبط با جست‌وجو";
+
+  wikiImageWrap.classList.add("visible");
+
+  const showArrows = galleryReady && galleryImages.length > 1;
+  galleryPrev.hidden = !showArrows;
+  galleryNext.hidden = !showArrows;
+}
+
+function renderGallery(images) {
+  galleryImages = images.slice(0, 12);
+  galleryIndex = 0;
+
+  if (!galleryImages.length) {
+    resetGallery();
+    return;
+  }
+
+  showGalleryImage();
+}
+
+galleryPrev.addEventListener("click", () => {
+  if (galleryImages.length < 2) return;
+  galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+  showGalleryImage();
+});
+
+galleryNext.addEventListener("click", () => {
+  if (galleryImages.length < 2) return;
+  galleryIndex = (galleryIndex + 1) % galleryImages.length;
+  showGalleryImage();
+});
+
+/* ---------- ویکی‌پدیا ---------- */
+
+let wikiCard = null;
+let wikiInfobox = null;
+const wikiPageCache = new Map();
+const wikiPromiseCache = new Map();
+const infoboxCache = new Map();
+
+function stripParens(t) {
+  return normalizePlaceName(String(t || "").replace(/\s*\([^)]*\)\s*/g, " "));
+}
+
+async function wikiImageByTitle(lang, title) {
+  try {
+    const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+    api.searchParams.set("action", "query");
+    api.searchParams.set("titles", title);
+    api.searchParams.set("redirects", "1");
+    api.searchParams.set("prop", "pageimages");
+    api.searchParams.set("piprop", "thumbnail");
+    api.searchParams.set("pithumbsize", "900");
+    api.searchParams.set("format", "json");
+    api.searchParams.set("origin", "*");
+
+    const res = await gfetch(api.toString());
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const pg = Object.values(data.query?.pages || {})[0];
+    return pg?.thumbnail?.source || null;
+  } catch (error) {
+    console.warn("Wikipedia image by title failed:", error);
+    return null;
+  }
+}
+
+function getWikiPage(query, sequence) {
+  const q = normalizePlaceName(query);
+  if (!q) return Promise.resolve(null);
+
+  if (wikiPromiseCache.has(q)) return wikiPromiseCache.get(q);
+
+  const promise = getWikiPageRaw(query, sequence);
+  wikiPromiseCache.set(q, promise);
+
+  promise.then(result => {
+    if (result === null && !wikiPageCache.has(q)) wikiPromiseCache.delete(q);
+  }).catch(() => wikiPromiseCache.delete(q));
+
+  return promise;
+}
+
+async function getWikiPageRaw(query, sequence) {
+  const q = normalizePlaceName(query);
+  if (!q || q.split(" ").length > 4 || q.length > 50) return null;
+  if (wikiPageCache.has(q)) return wikiPageCache.get(q);
+
+  const langs = /[\u0600-\u06FF]/.test(q) ? ["fa", "en"] : ["en", "fa"];
+  let found = null;
+
+  for (const lang of langs) {
+    if (sequence !== searchSequence) return null;
+
+    try {
+      const api = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+      api.searchParams.set("action", "query");
+      api.searchParams.set("generator", "search");
+      api.searchParams.set("gsrsearch", query);
+      api.searchParams.set("gsrnamespace", "0");
+      api.searchParams.set("gsrlimit", "6");
+      api.searchParams.set("prop", "extracts|pageimages|pageprops|info|langlinks");
+      api.searchParams.set("lllang", "en");
+      api.searchParams.set("exintro", "1");
+      api.searchParams.set("explaintext", "1");
+      api.searchParams.set("exlimit", "max");
+      api.searchParams.set("piprop", "thumbnail");
+      api.searchParams.set("pithumbsize", "900");
+      api.searchParams.set("ppprop", "disambiguation");
+      api.searchParams.set("inprop", "url");
+      api.searchParams.set("format", "json");
+      api.searchParams.set("origin", "*");
+
+      const res = await gfetch(api.toString());
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      if (sequence !== searchSequence) return null;
+
+      const pages = Object.values(data.query?.pages || {})
+        .sort((x, y) => (x.index || 0) - (y.index || 0));
+
+      for (const pg of pages) {
+        const title = stripParens(pg.title);
+
+        if (!title || !(q.includes(title) || title.includes(q))) continue;
+        if (pg.pageprops && "disambiguation" in pg.pageprops) continue;
+        if (!pg.extract) continue;
+
+        found = {
+          lang,
+          url: pg.fullurl || `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title)}`,
+          title: pg.title,
+          content: pg.extract.trim().split("\n")[0],
+          image: pg.thumbnail?.source || null,
+          enTitle: pg.langlinks?.[0]?.["*"] || (lang === "en" ? pg.title : null)
+        };
+        break;
+      }
+    } catch (error) {
+      console.warn(`Wikipedia lookup (${lang}) failed:`, error);
+    }
+
+    if (found) break;
+  }
+
+  if (found && !found.image && found.enTitle) {
+    found.image = await wikiImageByTitle("en", found.enTitle);
+  }
+
+  wikiPageCache.set(q, found);
+  return found;
+}
+
+async function loadWikipediaImage(query, sequence) {
+  const pg = await getWikiPage(query, sequence);
+  return pg?.image ? { src: pg.image, source: "ویکی‌پدیا", score: 100000, rank: 0 } : null;
+}
+
+async function loadWikipediaSummary(query, sequence) {
+  const pg = await getWikiPage(query, sequence);
+  return pg ? { url: pg.url, title: pg.title, content: pg.content } : null;
+}
+
+function renderWikiCard(card) {
+  const el = document.createElement("article");
+  el.className = "result";
+
+  const icon = createSiteIcon(card.url);
+  if (icon) el.appendChild(icon);
+
+  const h = document.createElement("h2");
+  const a = document.createElement("a");
+  a.href = card.url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.textContent = card.title;
+  h.appendChild(a);
+  el.appendChild(h);
+
+  addText(el, "p", card.content);
+  addText(el, "span", "منبع: ویکی‌پدیا", "result-engine");
+
+  resultsBox.appendChild(el);
+}
+
+async function loadWikiInfobox(query, sequence) {
+  const pg = await getWikiPage(query, sequence);
+  if (!pg) return null;
+
+  const key = pg.lang + "|" + pg.title;
+  if (infoboxCache.has(key)) return infoboxCache.get(key);
+
+  let result = null;
+
+  try {
+    const api = new URL(`https://${pg.lang}.wikipedia.org/w/api.php`);
+    api.searchParams.set("action", "parse");
+    api.searchParams.set("page", pg.title);
+    api.searchParams.set("prop", "text");
+    api.searchParams.set("section", "0");
+    api.searchParams.set("redirects", "1");
+    api.searchParams.set("disableeditsection", "1");
+    api.searchParams.set("format", "json");
+    api.searchParams.set("origin", "*");
+
+    const res = await gfetch(api.toString());
+
+    if (res.ok) {
+      const data = await res.json();
+      const html = data?.parse?.text?.["*"];
+      const doc = html ? new DOMParser().parseFromString(html, "text/html") : null;
+      const table = doc?.querySelector("table.infobox, table[class*='infobox']");
+
+      if (table) {
+        table.querySelectorAll("sup, style, script, .reference, .noprint, .mw-empty-elt")
+          .forEach(el => el.remove());
+        table.querySelectorAll("br").forEach(br => br.replaceWith(doc.createTextNode("، ")));
+
+        const clean = t => (t || "").replace(/\s+/g, " ").replace(/(،\s*)+$/, "").trim();
+        const rows = [];
+
+        table.querySelectorAll("tr").forEach(tr => {
+          const th = tr.querySelector(":scope > th");
+          const td = tr.querySelector(":scope > td");
+          if (!th || !td) return;
+
+          const label = clean(th.textContent);
+          let value = clean(td.textContent);
+          if (!label || !value || label.length > 40) return;
+          if (value.length > 160) value = value.slice(0, 157) + "…";
+
+          rows.push({ label, value });
+        });
+
+        if (rows.length >= 2) {
+          result = { title: pg.title, url: pg.url, rows: rows.slice(0, 16) };
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Infobox failed:", error);
+  }
+
+  if (sequence === searchSequence) infoboxCache.set(key, result);
+  return result;
+}
+
+function renderInfoboxCard(info) {
+  const card = document.createElement("article");
+  card.className = "weather-card";
+
+  addText(card, "h2", `اطلاعات کلی: ${info.title}`, "weather-details-title");
+
+  const grid = document.createElement("div");
+  grid.className = "weather-grid";
+  info.rows.forEach(r => grid.appendChild(weatherMetric(r.label, r.value)));
+  card.appendChild(grid);
+
+  const source = document.createElement("span");
+  source.className = "weather-source";
+  source.append("منبع: ");
+
+  const a = document.createElement("a");
+  a.href = info.url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.textContent = "ویکی‌پدیا";
+
+  source.appendChild(a);
+  card.appendChild(source);
+
+  resultsBox.appendChild(card);
+}
+
+function extractImageUrl(result) {
+  const candidates = [
+    result.img_src, result.image, result.image_url,
+    result.thumbnail, result.thumbnail_src, result.thumbnail_url
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+
+    try {
+      const url = new URL(candidate);
+      if (["http:", "https:"].includes(url.protocol)) return url.href;
+    } catch {}
+  }
+
+  return null;
+}
+
+/* تصاویر موتورها (بک‌اند images)؛ عکس ویکی‌پدیا جداگانه در گالری اضافه می‌شود */
+async function collectImageResults(query, sequence, wikiImageResult) {
+  const imageGroups = await Promise.all(
+    ENGINES.map(async engine => {
+      try {
+        const data = await searchEngine(query, engine, "images", BACKENDS.images);
+
+        if (sequence !== searchSequence) return [];
+
+        const list = Array.isArray(data.results) ? data.results : [];
+
+        return list.map((result, index) => {
+          const src = extractImageUrl(result);
+          if (!src) return null;
+
+          const weight = WEIGHTS[engine] || [];
+
+          return {
+            src,
+            source: engine,
+            score: (weight[index] || 0) + (index < 5 ? 2 : 0),
+            rank: index + 1
+          };
+        }).filter(Boolean);
+      } catch (error) {
+        console.warn(`Image search failed (${engine}):`, error);
+        return [];
+      }
+    })
+  );
+
+  if (sequence !== searchSequence) return null;
+
+  const uniqueImages = new Map();
+
+  for (const image of imageGroups.flat()) {
+    let key = image.src;
+
+    try {
+      const parsed = new URL(image.src);
+      parsed.hash = "";
+      key = parsed.href;
+    } catch {}
+
+    const existing = uniqueImages.get(key);
+
+    if (!existing) {
+      uniqueImages.set(key, { ...image });
+    } else {
+      existing.score += image.score;
+
+      if (!existing.source.split(", ").includes(image.source)) {
+        existing.source += `, ${image.source}`;
+      }
+    }
+  }
+
+  const rankedImages = [...uniqueImages.values()].sort((a, b) =>
+    b.score - a.score || a.rank - b.rank
+  );
+
+  const finalImages = [];
+
+  if (wikiImageResult?.src) finalImages.push(wikiImageResult);
+
+  const maxGalleryImages = wikiImageResult?.src ? 12 : 11;
+
+  for (const image of rankedImages) {
+    if (finalImages.length >= maxGalleryImages) break;
+
+    const duplicate = finalImages.some(item => {
+      try {
+        const first = new URL(item.src);
+        const second = new URL(image.src);
+        first.hash = "";
+        second.hash = "";
+        return first.href === second.href;
+      } catch {
+        return item.src === image.src;
+      }
+    });
+
+    if (!duplicate) finalImages.push(image);
+  }
+
+  return finalImages;
+}
+
+function addText(parent, tag, text, className) {
+  const el = document.createElement(tag);
+  el.textContent = text == null ? "" : String(text);
+  if (className) el.className = className;
+  parent.appendChild(el);
+  return el;
+}
+
+function normalizedUrl(raw) {
+  try {
+    const u = new URL(raw);
+    if (!["http:", "https:"].includes(u.protocol)) return null;
+
+    u.hash = "";
+    u.hostname = u.hostname.toLowerCase().replace(/^www\./, "");
+
+    if (["ipv4.google.com", "google.com.nf"].includes(u.hostname)) {
+      u.hostname = "google.com";
+    }
+
+    if (u.pathname.length > 1) u.pathname = u.pathname.replace(/\/+$/, "");
+    if (u.pathname === "/") u.pathname = "/";
+
+    [...u.searchParams.keys()].forEach(k => {
+      const key = k.toLowerCase();
+      if (/^utm_/i.test(k) || [
+        "gclid", "fbclid", "dclid", "mc_cid", "mc_eid", "yclid",
+        "_ga", "_gl", "ref_src", "ref_url", "igshid", "si"
+      ].includes(key)) {
+        u.searchParams.delete(k);
+        return;
+      }
+      if (u.hostname === "google.com" && u.pathname === "/" &&
+          ["hl", "gl", "source", "client", "ie", "oe", "authuser"].includes(key)) {
+        u.searchParams.delete(k);
+      }
+    });
+
+    u.searchParams.sort();
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
+function hostOf(raw) {
+  try {
+    return new URL(raw).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function priorityForUrl(raw) {
+  const host = hostOf(raw);
+  const index = PRIORITY_SITES.findIndex(site =>
+    host === site.domain || host.endsWith("." + site.domain)
+  );
+  return index < 0 ? PRIORITY_SITES.length + 1 : index + 1;
+}
+
+function createSiteIcon(url) {
+  const host = hostOf(url);
+  if (!host) return null;
+
+  const icon = document.createElement("img");
+  icon.className = "result-site-icon";
+  icon.alt = "";
+  icon.setAttribute("aria-hidden", "true");
+  icon.loading = "lazy";
+  icon.referrerPolicy = "no-referrer";
+  icon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(host) + "&sz=64";
+
+  icon.onerror = function () {
+    if (this.dataset.fallbackTried !== "yes") {
+      this.dataset.fallbackTried = "yes";
+      this.src = "https://icons.duckduckgo.com/ip3/" + encodeURIComponent(host) + ".ico";
+    } else {
+      this.style.display = "none";
+    }
+  };
+
+  return icon;
+}
+
+function detectTarget(input) {
+  let remaining = input.trim();
+  let directUrl = null;
+  let domain = null;
+
+  const urlMatch = remaining.match(
+    /(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s]*)?/i
+  );
+
+  if (urlMatch) {
+    const candidate = urlMatch[0].replace(/[),؛،.!?]+$/, "");
+    const normalizedCandidate = /^https?:\/\//i.test(candidate) ? candidate : "https://" + candidate;
+
+    try {
+      const parsed = new URL(normalizedCandidate);
+
+      if (parsed.hostname.includes(".")) {
+        directUrl = parsed.href;
+        domain = parsed.hostname.toLowerCase().replace(/^www\./, "");
+        remaining = remaining.replace(urlMatch[0], " ").trim();
+      }
+    } catch {}
+  }
+
+  if (!domain) {
+    for (const site of SITE_ALIASES) {
+      const aliases = [...site.names].sort((a, b) => b.length - a.length);
+
+      for (const alias of aliases) {
+        const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(`(^|\\s)${escaped}(?=$|\\s|[.,،؛])`, "i");
+
+        if (pattern.test(remaining)) {
+          domain = site.domain;
+          remaining = remaining.replace(pattern, " ").trim();
+          break;
+        }
+      }
+
+      if (domain) break;
+    }
+  }
+
+  remaining = remaining.replace(/\s+/g, " ")
+    .replace(/^[\s،,؛:]+|[\s،,؛:]+$/g, "").trim();
+
+  if (!remaining && directUrl) {
+    try {
+      const path = new URL(directUrl).pathname.split("/").filter(Boolean).pop();
+      if (path) remaining = decodeURIComponent(path).replace(/[-_]/g, " ");
+    } catch {}
+  }
+
+  return { domain, query: remaining || input.trim(), directUrl };
+}
+
+/* ---------- شناسایی مکان ---------- */
+
+function hasExplicitWeatherIntent(query) {
+  const q = normalizeSearchText(query);
+  return /(?:آب و هو|هواشناسی|هوای|پیش بینی هوا|وضعیت هوا|weather|forecast)/i.test(q);
+}
+
+function shouldShowWeatherForQuery(query) {
+  const placeQuery = normalizePlaceName(query);
+  return hasExplicitWeatherIntent(query) || Boolean(KNOWN_PLACES[placeQuery]);
+}
+
+function getWeatherPlaceQuery(query) {
+  let value = normalizePlaceName(query);
+
+  const prefixes = [
+    /^وضعیت\s+آب\s+و\s+هوای\s+/,
+    /^وضعیت\s+هوای\s+/,
+    /^پیش\s+بینی\s+آب\s+و\s+هوای\s+/,
+    /^پیش\s+بینی\s+هوای\s+/,
+    /^آب\s+و\s+هوای\s+/,
+    /^آب\s+و\s+هوا\s+/,
+    /^هواشناسی\s+/,
+    /^هوای\s+/,
+    /^weather\s+forecast\s+for\s+/i,
+    /^weather\s+in\s+/i,
+    /^weather\s+for\s+/i,
+    /^forecast\s+for\s+/i,
+    /^forecast\s+in\s+/i,
+    /^weather\s+/i
+  ];
+
+  for (const prefix of prefixes) {
+    if (prefix.test(value)) {
+      value = value.replace(prefix, "").trim();
+      break;
+    }
+  }
+
+  value = value
+    .replace(/\s+(آب\s+و\s+هوا|هواشناسی|weather|forecast)$/i, "")
+    .replace(/\s+(امروز|فردا|اکنون|الان|today|tomorrow|now)$/i, "")
+    .trim();
+
+  return value;
+}
+
+function placeRank(item) {
+  if (item.feature_code === "PCLI") return 0;
+  if (item.feature_code === "PPLC") return 1;
+  if (item.feature_code === "ADM1") return 2;
+  return 3;
+}
+
+function levelAllows(item, level) {
+  if (level === "top") return placeRank(item) <= 1;
+  if (level === "strict") return placeRank(item) <= 2 || (item.population || 0) >= 100000;
+  return true;
+}
+
+function placeFromItem(item, name) {
+  return {
+    name: name || item.name,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    country: item.country || "",
+    countryCode: item.country_code || "",
+    timezone: item.timezone || "",
+    isCountry: item.feature_code === "PCLI"
+  };
+}
+
+async function findPlaceExact(placeQuery, level) {
+  if (!placeQuery) return null;
+
+  if (KNOWN_PLACES[placeQuery]) return KNOWN_PLACES[placeQuery];
+
+  if (
+    placeQuery.length > 45 ||
+    placeQuery.split(" ").length > 4 ||
+    /https?:|www\.|site:|twitter|youtube|instagram|telegram|تلگرام|توییتر|اینستاگرام/i.test(placeQuery)
+  ) {
+    return null;
+  }
+
+  const queryNorm = normalizePlaceName(placeQuery);
+
+  for (const language of ["fa", "en"]) {
+    try {
+      const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+      url.searchParams.set("name", placeQuery);
+      url.searchParams.set("count", "10");
+      url.searchParams.set("language", language);
+      url.searchParams.set("format", "json");
+
+      const response = await gfetch(url.toString());
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      const place = (data.results || [])
+        .filter(item => normalizePlaceName(item.name || "") === queryNorm)
+        .filter(item => Number.isFinite(item.latitude) && Number.isFinite(item.longitude))
+        .filter(item => levelAllows(item, level))
+        .sort((a, b) => placeRank(a) - placeRank(b))[0];
+
+      if (place) return placeFromItem(place);
+    } catch (error) {
+      console.warn("Weather location lookup failed:", error);
+    }
+  }
+
+  const englishName = await getEnglishNameFromWikipedia(placeQuery);
+
+  if (englishName) {
+    try {
+      const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+      url.searchParams.set("name", englishName);
+      url.searchParams.set("count", "10");
+      url.searchParams.set("language", "en");
+      url.searchParams.set("format", "json");
+
+      const response = await gfetch(url.toString());
+
+      if (response.ok) {
+        const data = await response.json();
+        const wanted = normalizePlaceName(englishName);
+
+        const place = (data.results || [])
+          .filter(item =>
+            normalizePlaceName(item.name || "") === wanted &&
+            Number.isFinite(item.latitude) && Number.isFinite(item.longitude) &&
+            ((item.population || 0) >= 100000 ||
+              ["PCLI", "ADM1", "ADM2"].includes(item.feature_code)) &&
+            levelAllows(item, level)
+          )
+          .sort((a, b) => placeRank(a) - placeRank(b))[0];
+
+        if (place) return placeFromItem(place, placeQuery);
+      }
+    } catch (error) {
+      console.warn("English place lookup failed:", error);
+    }
+  }
+
+  return null;
+}
+
+async function findWeatherPlace(query, level = "any") {
+  const q = getWeatherPlaceQuery(query);
+  if (!q) return null;
+
+  const whole = await findPlaceExact(q, level);
+  if (whole) return whole;
+
+  const words = q.split(" ");
+  if (words.length === 2) {
+    for (const w of [words[0], words[1]]) {
+      const p = await findPlaceExact(w, level === "top" ? "top" : "strict");
+      if (p) return p;
+    }
+  }
+
+  return null;
+}
+
+/* ---------- ارزش غذایی ---------- */
+
+const USDA_API_KEY = "DEMO_KEY";
+
+const VITAMINS = [
+  ["ویتامین A", [320], 900], ["ویتامین C", [401], 90], ["ویتامین D", [328], 20],
+  ["ویتامین E", [323], 15], ["ویتامین K", [430], 120],
+  ["ویتامین B1 (تیامین)", [404], 1.2], ["ویتامین B2 (ریبوفلاوین)", [405], 1.3],
+  ["ویتامین B3 (نیاسین)", [406], 16], ["ویتامین B5", [410], 5],
+  ["ویتامین B6", [415], 1.7], ["ویتامین B9 (فولات)", [435, 417], 400],
+  ["ویتامین B12", [418], 2.4]
+];
+
+const MINERALS = [
+  ["کلسیم", [301], 1300], ["آهن", [303], 18], ["منیزیم", [304], 420],
+  ["فسفر", [305], 1250], ["پتاسیم", [306], 4700], ["سدیم", [307], 2300],
+  ["روی", [309], 11], ["مس", [312], 0.9], ["منگنز", [315], 2.3],
+  ["سلنیوم", [317], 55]
+];
+
+function nutrientValue(food, numbers) {
+  const list = food.foodNutrients || [];
+
+  for (const number of numbers) {
+    const item = list.find(n => String(n.nutrientNumber) === String(number));
+    const value = Number(item?.value);
+    if (item && Number.isFinite(value)) return value;
+  }
+
+  return null;
+}
+
+async function loadNutrition(originalQuery, sequence) {
+  const q = normalizePlaceName(originalQuery);
+
+  if (!q || q.length > 30 || q.split(" ").length > 3 || /[\d:/@]/.test(q)) return null;
+
+  let english = q;
+
+  if (/[\u0600-\u06FF]/.test(q)) {
+    const raw = String(originalQuery).trim().replace(/ي/g, "ی").replace(/ك/g, "ک");
+    english = await getEnglishNameFromWikipedia(raw);
+    if (!english && raw !== q) english = await getEnglishNameFromWikipedia(q);
+  }
+
+  if (sequence !== searchSequence || !english) return null;
+
+  english = english.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
+  if (!english) return null;
+
+  const url = new URL("https://api.nal.usda.gov/fdc/v1/foods/search");
+  url.searchParams.set("api_key", USDA_API_KEY);
+  url.searchParams.set("query", english);
+  url.searchParams.set("dataType", "Foundation,SR Legacy,Survey (FNDDS)");
+  url.searchParams.set("pageSize", "15");
+
+  const response = await gfetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(response.status === 429
+      ? "سقف مصرف کلید DEMO_KEY تمام شده است"
+      : `خطای ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (sequence !== searchSequence) return null;
+
+  const base = english.replace(/(ies|es|s)$/, "");
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("\\b" + escaped + "[a-z]{0,3}\\b", "i");
+  const rank = { "Foundation": 0, "SR Legacy": 1, "Survey (FNDDS)": 2 };
+
+  const food = (data.foods || [])
+    .filter(item => re.test(item.description || "") && item.foodNutrients?.length)
+    .sort((a, b) => (rank[a.dataType] ?? 3) - (rank[b.dataType] ?? 3))[0];
+
+  return food ? { food, english } : null;
+}
+
+function nutritionMetric(label, value) {
+  return weatherMetric(label, value);
+}
+
+function percentText(value) {
+  return value >= 10 ? Math.round(value) + "٪" : (Math.round(value * 10) / 10) + "٪";
+}
+
+function renderNutrition(result, displayName) {
+  const food = result.food;
+  const panel = document.createElement("div");
+  panel.className = "nutrition-panel";
+
+  addText(panel, "h2", displayName, "nutrition-title");
+  addText(panel, "div", `${food.description} | مقادیر برای ۱۰۰ گرم`, "nutrition-sub");
+
+  const kcal = nutrientValue(food, [208, 957, 958]);
+  if (kcal != null) {
+    addText(panel, "div", `🔥 ${Math.round(kcal)} کالری`, "nutrition-calories");
+  }
+
+  const sodium = nutrientValue(food, [307]);
+  const composition = [
+    ["💧 آب", nutrientValue(food, [255])],
+    ["🥩 پروتئین", nutrientValue(food, [203])],
+    ["🧈 چربی", nutrientValue(food, [204])],
+    ["🍞 کربوهیدرات", nutrientValue(food, [205])],
+    ["🍬 قند", nutrientValue(food, [269, 269.3])],
+    ["🌾 فیبر", nutrientValue(food, [291])],
+    ["🧂 نمک (از سدیم)", sodium == null ? null : sodium * 2.5 / 1000]
+  ].filter(item => item[1] != null);
+
+  if (composition.length) {
+    addText(panel, "div", "ترکیب (درصد وزنی)", "nutrition-section");
+    const grid = document.createElement("div");
+    grid.className = "weather-grid";
+    composition.forEach(([label, value]) => grid.appendChild(nutritionMetric(label, percentText(value))));
+    panel.appendChild(grid);
+  }
+
+  const addDaily = (title, list) => {
+    const items = list
+      .map(([label, numbers, daily]) => [label, nutrientValue(food, numbers), daily])
+      .filter(item => item[1] != null && item[1] > 0);
+
+    if (!items.length) return;
+
+    addText(panel, "div", title, "nutrition-section");
+    const grid = document.createElement("div");
+    grid.className = "weather-grid";
+    items.forEach(([label, value, daily]) =>
+      grid.appendChild(nutritionMetric(label, percentText(value / daily * 100))));
+    panel.appendChild(grid);
+  };
+
+  addDaily("ویتامین‌ها (درصد نیاز روزانه)", VITAMINS);
+  addDaily("مواد معدنی (درصد نیاز روزانه)", MINERALS);
+
+  const note = addText(panel, "div", "", "nutrition-note");
+  note.append("منبع: USDA FoodData Central. درصد نیاز روزانه بر پایهٔ مقادیر مرجع FDA است و ترکیب‌ها میانگین‌اند، نه دستور ساخت یک محصول یا غذای مشخص.");
+
+  nutritionBox.replaceChildren(panel);
+  nutritionWrap.classList.add("visible");
+}
+
+/* ---------- ترجمهٔ واژه ---------- */
+
+const TRANSLATE_LANGS = {};
+[
+  ["انگلیسی", "en"], ["عربی", "ar"], ["ژاپنی", "ja"], ["فرانسوی", "fr"], ["فرانسه", "fr"],
+  ["آلمانی", "de"], ["اسپانیایی", "es"], ["اسپانیولی", "es"], ["ایتالیایی", "it"],
+  ["روسی", "ru"], ["ترکی", "tr"], ["ترکی استانبولی", "tr"], ["چینی", "zh-CN"],
+  ["کره‌ای", "ko"], ["هندی", "hi"], ["پرتغالی", "pt"], ["هلندی", "nl"],
+  ["سوئدی", "sv"], ["یونانی", "el"], ["عبری", "iw"], ["اردو", "ur"], ["کردی", "ku"],
+  ["آذری", "az"], ["ارمنی", "hy"], ["لاتین", "la"], ["لهستانی", "pl"],
+  ["اوکراینی", "uk"], ["تایلندی", "th"], ["ویتنامی", "vi"], ["اندونزیایی", "id"],
+  ["فنلاندی", "fi"], ["نروژی", "no"], ["دانمارکی", "da"], ["چکی", "cs"],
+  ["مجاری", "hu"], ["رومانیایی", "ro"], ["بلغاری", "bg"], ["صربی", "sr"],
+  ["فیلیپینی", "tl"], ["بنگالی", "bn"], ["تاجیکی", "tg"], ["ازبکی", "uz"],
+  ["پشتو", "ps"], ["گرجی", "ka"]
+].forEach(([name, code]) => { TRANSLATE_LANGS[normalizePlaceName(name)] = code; });
+
+const RTL_LANGS = ["ar", "iw", "ur", "ps"];
+
+function parseTranslationRequest(input) {
+  const q = normalizePlaceName(input).replace(/^(ترجمه(?: ی)?|معنی)\s+/, "");
+
+  const match = q.match(/^(.{1,60}?)\s+به\s+(?:زبان\s+)?(\S+(?:\s\S+)?)$/);
+  if (!match) return null;
+
+  const lang = TRANSLATE_LANGS[match[2].trim()];
+  if (!lang) return null;
+
+  return { text: match[1].trim(), lang };
+}
+
+function latinToPersian(text) {
+  const t = String(text).toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss").replace(/[ʿʾ'’`ʻ]/g, "");
+
+  const digraphs = [
+    ["sh", "ش"], ["ch", "چ"], ["kh", "خ"], ["zh", "ژ"], ["gh", "غ"], ["ph", "ف"],
+    ["th", "ث"], ["ng", "نگ"], ["ck", "ک"], ["ee", "ی"], ["oo", "و"], ["ou", "او"],
+    ["ai", "ای"], ["ay", "ای"], ["au", "او"], ["aa", "ا"], ["ii", "ی"], ["uu", "و"]
+  ];
+
+  const single = {
+    a: "ا", b: "ب", c: "ک", d: "د", e: "", f: "ف", g: "گ", h: "ه", i: "ی",
+    j: "ج", k: "ک", l: "ل", m: "م", n: "ن", o: "و", p: "پ", q: "ق", r: "ر",
+    s: "س", t: "ت", u: "و", v: "و", w: "و", x: "کس", y: "ی", z: "ز"
+  };
+
+  const initialVowel = { a: "ا", e: "ا", i: "ای", o: "او", u: "او" };
+
+  return t.split(/(\s+)/).map(word => {
+    if (/^\s*$/.test(word)) return word;
+
+    let out = "";
+    let i = 0;
+
+    while (i < word.length) {
+      const pair = word.slice(i, i + 2);
+      const digraph = digraphs.find(item => item[0] === pair);
+
+      if (digraph) {
+        out += digraph[1];
+        i += 2;
+        continue;
+      }
+
+      const ch = word[i];
+
+      if (i === 0 && initialVowel[ch]) {
+        out += initialVowel[ch];
+      } else if (ch === "c" && "eiy".includes(word[i + 1] || "")) {
+        out += "س";
+      } else if (ch === "y" && i === 0) {
+        out += "ی";
+      } else if (single[ch] !== undefined) {
+        out += single[ch];
+      } else if (!/[a-z]/.test(ch)) {
+        out += ch;
+      }
+
+      i++;
+    }
+
+    return out.replace(/([^\d])\1+/g, "$1");
+  }).join("");
+}
+
+async function fetchTranslation(request, sequence) {
+  const url = new URL("https://translate.googleapis.com/translate_a/single");
+  url.searchParams.set("client", "gtx");
+  url.searchParams.set("sl", "auto");
+  url.searchParams.set("tl", request.lang);
+  url.searchParams.append("dt", "t");
+  url.searchParams.append("dt", "rm");
+  url.searchParams.set("q", request.text);
+
+  const response = await gfetch(url.toString());
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  if (sequence !== searchSequence) return null;
+
+  const segments = Array.isArray(data?.[0]) ? data[0] : [];
+  const translation = segments.map(item => item?.[0] || "").join("").trim();
+  if (!translation) return null;
+
+  const romanization = segments.find(item => item && item[0] == null && item[2])?.[2];
+
+  let latin = null;
+  if (romanization) {
+    latin = String(romanization).trim();
+  } else if (/[A-Za-z\u00C0-\u024F]/.test(translation)) {
+    latin = translation;
+  }
+
+  return {
+    lang: request.lang,
+    translation,
+    latin,
+    persian: latin ? latinToPersian(latin) : null
+  };
+}
+
+function renderTranslation(result) {
+  translateBox.replaceChildren();
+
+  const panel = document.createElement("div");
+  panel.className = "translate-panel";
+
+  const main = addText(panel, "div", result.translation, "translate-main");
+  main.dir = RTL_LANGS.includes(result.lang) ? "rtl" : "ltr";
+  main.lang = result.lang;
+
+  if (result.latin && result.latin.toLowerCase() !== result.translation.toLowerCase()) {
+    addText(panel, "div", result.latin, "translate-latin");
+  }
+
+  if (result.persian) addText(panel, "div", result.persian, "translate-fa");
+
+  translateBox.appendChild(panel);
+  translateWrap.classList.add("visible");
+}
+
+function resetTranslation() {
+  translateBox.replaceChildren();
+  translateWrap.classList.remove("visible");
+}
+
+/* ---------- مسئلهٔ ریاضی ---------- */
+
+function evaluateMath(input) {
+  let s = String(input || "").trim();
+  if (!s) return null;
+
+  s = s
+    .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/٫/g, ".")
+    .replace(/[×✕]/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/[−–—]/g, "-")
+    .replace(/\*\*/g, "^")
+    .replace(/=\s*\??\s*$/, "")
+    .trim();
+
+  s = s.replace(/(?<=[\d)])\s*[xX]\s*(?=[\d(])/g, "*");
+
+  if (!/^[\d+\-*/().^\s]+$/.test(s)) return null;
+  if (!/\d/.test(s) || !/[+\-*/^]/.test(s.replace(/^\s*[+-]/, ""))) return null;
+
+  if (/^\d{3,}(-\d+)+$/.test(s) || /^\d+(-\d{4,})+$/.test(s)) return null;
+
+  const tokens = s.match(/\d+\.?\d*|\.\d+|[+\-*/^()]/g) || [];
+  if (tokens.join("") !== s.replace(/\s+/g, "")) return null;
+
+  let pos = 0;
+  const peek = () => tokens[pos];
+  const fail = () => { throw new Error("bad expression"); };
+
+  function expr() {
+    let value = term();
+    while (peek() === "+" || peek() === "-") {
+      const op = tokens[pos++];
+      const right = term();
+      value = op === "+" ? value + right : value - right;
+    }
+    return value;
+  }
+
+  function term() {
+    let value = unary();
+    while (peek() === "*" || peek() === "/") {
+      const op = tokens[pos++];
+      const right = unary();
+      value = op === "*" ? value * right : value / right;
+    }
+    return value;
+  }
+
+  function unary() {
+    if (peek() === "-") { pos++; return -unary(); }
+    if (peek() === "+") { pos++; return unary(); }
+    return power();
+  }
+
+  function power() {
+    const base = primary();
+    if (peek() === "^") { pos++; return Math.pow(base, unary()); }
+    return base;
+  }
+
+  function primary() {
+    const token = tokens[pos++];
+    if (token === undefined) fail();
+    if (token === "(") {
+      const value = expr();
+      if (tokens[pos++] !== ")") fail();
+      return value;
+    }
+    const number = Number(token);
+    if (!Number.isFinite(number)) fail();
+    return number;
+  }
+
+  try {
+    const result = expr();
+    if (pos !== tokens.length || !Number.isFinite(result)) return null;
+    return String(parseFloat(result.toPrecision(12)));
+  } catch {
+    return null;
+  }
+}
+
+function renderMath(answer) {
+  mathBox.replaceChildren();
+  addText(mathBox, "div", answer, "math-answer");
+  mathWrap.classList.add("visible");
+}
+
+function resetMath() {
+  mathBox.replaceChildren();
+  mathWrap.classList.remove("visible");
+}
+
+/* ---------- کد رنگ ---------- */
+
+const NAMED_COLORS = {};
+[
+  ["آبی","#0000FF"],["قرمز","#FF0000"],["سبز","#008000"],["زرد","#FFFF00"],
+  ["نارنجی","#FFA500"],["بنفش","#800080"],["صورتی","#FFC0CB"],["سیاه","#000000"],
+  ["مشکی","#000000"],["سفید","#FFFFFF"],["خاکستری","#808080"],["قهوه‌ای","#A52A2A"],
+  ["طلایی","#FFD700"],["نقره‌ای","#C0C0C0"],["فیروزه‌ای","#40E0D0"],["سرمه‌ای","#000080"],
+  ["blue","#0000FF"],["red","#FF0000"],["green","#008000"],["yellow","#FFFF00"],
+  ["orange","#FFA500"],["purple","#800080"],["pink","#FFC0CB"],["black","#000000"],
+  ["white","#FFFFFF"],["gray","#808080"],["brown","#A52A2A"]
+].forEach(([n, h]) => { NAMED_COLORS[normalizePlaceName(n)] = h; });
+
+function detectColor(input) {
+  const s = normalizePlaceName(input);
+  const prefix = /^(کد\s+رنگ|کد|رنگ|color\s+code|color)\s+/;
+  const hasPrefix = prefix.test(s);
+  const rest = s.replace(prefix, "").trim();
+  let m;
+
+  if ((m = rest.match(/^#?([0-9a-f]{6}|[0-9a-f]{3})$/)) && (rest.startsWith("#") || hasPrefix)) {
+    let h = m[1];
+    if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    return "#" + h.toUpperCase();
+  }
+
+  if ((m = rest.match(/^rgb\(?\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})\s*\)?$/))) {
+    const v = [m[1], m[2], m[3]].map(Number);
+    if (v.every(n => n <= 255)) {
+      return "#" + v.map(n => n.toString(16).padStart(2, "0")).join("").toUpperCase();
+    }
+  }
+
+  if (hasPrefix && NAMED_COLORS[rest]) return NAMED_COLORS[rest];
+  return null;
+}
+
+function colorFormats(hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  const R = r / 255, G = g / 255, B = b / 255;
+  const max = Math.max(R, G, B), min = Math.min(R, G, B), d = max - min;
+  let h = 0;
+  if (d) {
+    h = max === R ? ((G - B) / d) % 6 : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
+    h = Math.round((h * 60 + 360) % 360);
+  }
+  const l = (max + min) / 2;
+  const sl = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+  const sv = max ? d / max : 0;
+  const k = 1 - max;
+  const c = k < 1 ? (1 - R - k) / (1 - k) : 0;
+  const mg = k < 1 ? (1 - G - k) / (1 - k) : 0;
+  const y = k < 1 ? (1 - B - k) / (1 - k) : 0;
+  const p = v => Math.round(v * 100);
+  return {
+    lines: [
+      `RGB: ${r}, ${g}, ${b}`,
+      `HSL: ${h}°, ${p(sl)}%, ${p(l)}%`,
+      `HSV: ${h}°, ${p(sv)}%, ${p(max)}%`,
+      `CMYK: ${p(c)}, ${p(mg)}, ${p(y)}, ${p(k)}`,
+      `CSS: rgb(${r} ${g} ${b})`
+    ],
+    dark: (0.299 * r + 0.587 * g + 0.114 * b) < 140
+  };
+}
+
+function renderColor(hex) {
+  const f = colorFormats(hex);
+  colorBox.replaceChildren();
+  colorWrap.style.background = hex;
+
+  const panel = document.createElement("div");
+  panel.className = "color-panel";
+  panel.style.color = f.dark ? "#fff" : "#111";
+
+  addText(panel, "div", hex, "color-hex");
+  f.lines.forEach(line => addText(panel, "div", line));
+
+  colorBox.appendChild(panel);
+  colorWrap.classList.add("visible");
+}
+
+function resetColor() {
+  colorBox.replaceChildren();
+  colorWrap.style.background = "";
+  colorWrap.classList.remove("visible");
+}
+
+/* ---------- معادل فارسی: دهخدا و معین (بک‌اند embassy) ---------- */
+
+const LEXICONS = {
+  dehkhoda: {
+    title: "لغتنامه دهخدا",
+    sites: [{ host: "dehkhoda.ut.ac.ir", path: "" }, { host: "vajehyab.com", path: "/dehkhoda" }],
+    link: w => "https://vajehyab.com/dehkhoda/" + encodeURIComponent(w)
+  },
+  moein: {
+    title: "فرهنگ فارسی معین",
+    sites: [{ host: "vajehyab.com", path: "/moein" }],
+    link: w => "https://vajehyab.com/moein/" + encodeURIComponent(w)
+  }
+};
+
+const lexCache = new Map();
+const PERSIAN_RE = /[\u0600-\u06FF]/;
+
+function parseEquivalentRequest(input) {
+  const q = normalizePlaceName(input);
+  let m;
+
+  if ((m = q.match(/^(?:معادل\s+فارسی|معادل|معنی\s+کلمه|معنی|معنای)\s+(.+)$/))) return { text: m[1].trim() };
+  if ((m = q.match(/^(.+?)\s+(?:معادل\s+فارسی|معادل|معنی|به\s+فارسی)$/))) return { text: m[1].trim() };
+  if ((m = q.match(/^(?:persian\s+(?:equivalent|meaning|translation)\s+of|meaning\s+of)\s+(.+)$/))) return { text: m[1].trim() };
+  if ((m = q.match(/^(.+?)\s+in\s+persian$/))) return { text: m[1].trim() };
+
+  return null;
+}
+
+async function lexiconLookup(key, word) {
+  const cacheKey = key + "|" + word;
+  if (lexCache.has(cacheKey)) return lexCache.get(cacheKey);
+
+  const wordNorm = normalizePlaceName(word);
+  let found = null;
+
+  outer:
+  for (const site of LEXICONS[key].sites) {
+    for (const engine of ENGINES) {
+      try {
+        const data = await searchEngine(`site:${site.host}${site.path} ${word}`, engine, null, BACKENDS.embassy);
+
+        for (const r of Array.isArray(data.results) ? data.results : []) {
+          const url = normalizedUrl(r.url);
+          if (!url) continue;
+
+          const parsed = new URL(url);
+          if (parsed.hostname !== site.host && !parsed.hostname.endsWith("." + site.host)) continue;
+          if (site.path && !parsed.pathname.toLowerCase().startsWith(site.path)) continue;
+
+          let path = parsed.pathname;
+          try { path = decodeURIComponent(path); } catch {}
+
+          const hay = normalizePlaceName(`${path} ${r.title || ""}`);
+          if (!hay.includes(wordNorm)) continue;
+
+          found = { title: cleanResultTitle(r), content: r.content || "", url };
+          break outer;
+        }
+      } catch (error) {
+        console.warn(`Lexicon lookup failed (${key}/${engine}):`, error);
+      }
+    }
+  }
+
+  lexCache.set(cacheKey, found);
+  return found;
+}
+
+function firstEquivalent(word, content) {
+  const text = normalizePlaceName(content).replace(/\[[^\]]*\]|\([^)]*\)|«|»/g, " ");
+  const wordNorm = normalizePlaceName(word);
+  const idx = text.indexOf(wordNorm);
+  if (idx < 0) return null;
+
+  const after = text.slice(idx + wordNorm.length);
+  const m = after.match(/^[\s:.\-–—،]*((?:[\u0600-\u06FF]+)(?:\s[\u0600-\u06FF]+)?)/);
+  if (!m) return null;
+
+  const eq = normalizePlaceName(m[1]);
+  return eq && eq !== wordNorm ? eq : null;
+}
+
+const STOP_WORDS = new Set(["از","به","در","و","که","را","با","این","آن","برای","تا","یا","من","تو","او","ما","شما","هم","بر","بی","چه","چرا","کجا","کی","یک","های","ها"]);
+
+async function computeCorrection(query, sequence) {
+  const tokens = normalizePlaceName(query).split(" ").filter(Boolean);
+  if (!tokens.length || tokens.length > 12 || !tokens.some(t => PERSIAN_RE.test(t))) return;
+
+  let changed = false;
+
+  const out = await Promise.all(tokens.map(async (t, i) => {
+    const clean = t.replace(/[^\u0600-\u06FF]/g, "");
+    if (i >= 6 || clean.length < 3 || clean !== t || STOP_WORDS.has(clean)) return t;
+
+    try {
+      const [d, m] = await Promise.all([lexiconLookup("dehkhoda", clean), lexiconLookup("moein", clean)]);
+      if (!d || !m) return t;
+
+      const e1 = firstEquivalent(clean, `${d.title} ${d.content}`);
+      const e2 = firstEquivalent(clean, `${m.title} ${m.content}`);
+
+      if (e1 && e1 === e2) { changed = true; return e1; }
+    } catch (error) {
+      console.warn("Correction lookup failed:", error);
+    }
+
+    return t;
+  }));
+
+  if (sequence !== searchSequence || !changed) return;
+
+  correctionBox.textContent = out.join(" ");
+  correctionBox.hidden = false;
+}
+
+function hideCorrection() {
+  correctionBox.hidden = true;
+  correctionBox.textContent = "";
+}
+
+correctionBox.addEventListener("click", hideCorrection);
+
+let hasSearched = false;
+
+function prepareNewSearch() {
+  hideCorrection();
+  queryInput.value = "";
+  hasSearched = false;
+  queryInput.focus();
+}
+
+queryInput.addEventListener("input", () => { hasSearched = false; });
+
+queryInput.addEventListener("pointerdown", () => {
+  if (hasSearched || !correctionBox.hidden) prepareNewSearch();
+});
+
+queryInput.addEventListener("click", () => {
+  if (document.activeElement !== queryInput) queryInput.focus();
+});
+
+function resetLex() {
+  lexBoxes.forEach(box => box.replaceChildren());
+  lexWraps.forEach(wrap => wrap.classList.remove("visible"));
+}
+
+function showLexBox(index, title, word, main, text, url) {
+  const panel = document.createElement("div");
+  panel.className = "lex-panel";
+
+  addText(panel, "h2", title, "lex-title");
+  addText(panel, "div", word, "lex-word");
+  if (main) addText(panel, "div", main, "lex-main");
+  addText(panel, "div", text, "lex-text");
+
+  if (url) {
+    const link = document.createElement("a");
+    link.className = "lex-link";
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "مشاهدهٔ مدخل کامل";
+    panel.appendChild(link);
+  }
+
+  lexBoxes[index].replaceChildren(panel);
+  lexWraps[index].classList.add("visible");
+}
+
+async function renderEquivalent(text, sequence) {
+  if (PERSIAN_RE.test(text)) {
+    const keys = ["dehkhoda", "moein"];
+    const entries = await Promise.all(keys.map(k => lexiconLookup(k, text)));
+    if (sequence !== searchSequence) return;
+
+    keys.forEach((k, i) => {
+      const e = entries[i];
+      showLexBox(
+        i, LEXICONS[k].title, text, "",
+        e ? (e.content || e.title) : "مدخلی برای این واژه در نتایج پیدا نشد.",
+        e ? e.url : LEXICONS[k].link(text)
+      );
+    });
+    return;
+  }
+
+  const url = new URL("https://translate.googleapis.com/translate_a/single");
+  url.searchParams.set("client", "gtx");
+  url.searchParams.set("sl", "auto");
+  url.searchParams.set("tl", "fa");
+  url.searchParams.append("dt", "t");
+  url.searchParams.append("dt", "bd");
+  url.searchParams.set("q", text);
+
+  const response = await gfetch(url.toString());
+  if (!response.ok) throw new Error("HTTP " + response.status);
+
+  const data = await response.json();
+  if (sequence !== searchSequence) return;
+
+  const main = (Array.isArray(data?.[0]) ? data[0] : []).map(i => i?.[0] || "").join("").trim();
+  const lines = (Array.isArray(data?.[1]) ? data[1] : [])
+    .map(group => `${group[0]}: ${(group[1] || []).slice(0, 6).join("، ")}`);
+
+  showLexBox(0, "دیکشنری", text, main, lines.join("\n") || "معادل بیشتری پیدا نشد.", "");
+}
+
+/* ---------- اپراتورهای اینترنت ---------- */
+
+const OPERATORS = [
+  { aliases: ["همراه اول", "همراه‌اول", "mci", "hamrah aval", "hamrahe aval"], title: "همراه اول", ussd: "*100#", own: "9990", other: "09129990" },
+  { aliases: ["ایرانسل", "irancell", "mtn irancell"], title: "ایرانسل", ussd: "*555#", own: "700", other: "09377000000" },
+  { aliases: ["رایتل", "rightel"], title: "رایتل", ussd: "*200#", own: "200", other: "09202000000" }
+];
+
+const OP_FILLER = new Set(["اینترنت", "بسته", "بسته‌های", "تعرفه", "تعرفه‌ها", "کد", "شماره", "پشتیبانی", "اپراتور", "internet", "package", "packages", "plans"]);
+const opWraps = [document.getElementById("opWrap1")];
+const opBoxes = [document.getElementById("opBox1")];
+
+function detectOperator(input) {
+  const words = normalizePlaceName(input).split(" ").filter(w => w && !OP_FILLER.has(w));
+  const rest = words.join(" ");
+  return OPERATORS.find(op => op.aliases.some(a => normalizePlaceName(a) === rest)) || null;
+}
+
+function resetOperator() {
+  opBoxes.forEach(b => b.replaceChildren());
+  opWraps.forEach(w => w.classList.remove("visible"));
+}
+
+function opRow(panel, label, value) {
+  const row = document.createElement("div");
+  row.className = "op-row";
+  addText(row, "div", label, "op-label");
+  addText(row, "div", value, "op-value");
+  panel.appendChild(row);
+}
+
+function renderOperator(op) {
+  const p1 = document.createElement("div");
+  p1.className = "op-panel";
+  addText(p1, "h2", op.title, "op-title");
+  opRow(p1, "کد USSD", op.ussd);
+  opRow(p1, `تماس از خط ${op.title}`, op.own);
+  opRow(p1, "تماس از اپراتور دیگر یا تلفن ثابت", op.other);
+  opBoxes[0].replaceChildren(p1);
+  opWraps[0].classList.add("visible");
+}
+
+function resetNutrition() {
+  nutritionBox.replaceChildren();
+  nutritionWrap.classList.remove("visible");
+}
+
+async function getEnglishNameFromWikipedia(title) {
+  try {
+    const api = new URL("https://fa.wikipedia.org/w/api.php");
+    api.searchParams.set("action", "query");
+    api.searchParams.set("titles", title);
+    api.searchParams.set("redirects", "1");
+    api.searchParams.set("prop", "langlinks");
+    api.searchParams.set("lllang", "en");
+    api.searchParams.set("format", "json");
+    api.searchParams.set("origin", "*");
+
+    const response = await gfetch(api.toString());
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const pages = Object.values(data.query?.pages || {});
+    const link = pages.find(page => page.langlinks?.length)?.langlinks[0];
+
+    return link?.["*"] || null;
+  } catch (error) {
+    console.warn("Wikipedia name lookup failed:", error);
+    return null;
+  }
+}
+
+async function fetchWeather(place) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+
+  url.searchParams.set("latitude", place.latitude);
+  url.searchParams.set("longitude", place.longitude);
+
+  url.searchParams.set("current", [
+    "temperature_2m", "relative_humidity_2m", "apparent_temperature",
+    "is_day", "precipitation",
+    "weather_code", "cloud_cover", "wind_speed_10m", "wind_direction_10m"
+  ].join(","));
+
+  url.searchParams.set("daily", [
+    "temperature_2m_max", "temperature_2m_min",
+    "precipitation_probability_max", "sunrise", "sunset"
+  ].join(","));
+
+  url.searchParams.set("forecast_days", "1");
+  url.searchParams.set("timezone", "auto");
+
+  const response = await gfetch(url.toString());
+  if (!response.ok) throw new Error("سرویس هواشناسی پاسخ نداد.");
+
+  const data = await response.json();
+  if (!data.current) throw new Error("اطلاعات فعلی هوا در دسترس نیست.");
+
+  return { ...data, place };
+}
+
+function weatherCodeInfo(code, isDay = true) {
+  if (code === 0) return { text: "آسمان صاف", icon: isDay ? "☀️" : "🌙" };
+  if ([1, 2].includes(code)) return { text: "کمی تا نیمه‌ابری", icon: isDay ? "🌤️" : "☁️" };
+  if (code === 3) return { text: "ابری", icon: "☁️" };
+  if ([45, 48].includes(code)) return { text: "مه‌آلود", icon: "🌫️" };
+  if ([51, 53, 55, 56, 57].includes(code)) return { text: "نم‌نم باران یا باران ریز", icon: "🌦️" };
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: "بارانی", icon: "🌧️" };
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: "برفی", icon: "🌨️" };
+  if ([95, 96, 99].includes(code)) return { text: "رعدوبرق و احتمال طوفان", icon: "⛈️" };
+
+  return { text: "وضعیت هوا نامشخص", icon: "🌍" };
+}
+
+function formatNumber(value, suffix = "") {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+    return "اطلاعات موجود نیست";
+  }
+  return `${value}${suffix}`;
+}
+
+function weatherMetric(label, value) {
+  const item = document.createElement("div");
+  item.className = "weather-metric";
+  addText(item, "div", label, "weather-metric-label");
+  addText(item, "div", value, "weather-metric-value");
+  return item;
+}
+
+function renderWeatherCards(data) {
+  if (!data?.current) return;
+
+  const current = data.current;
+  const daily = data.daily || {};
+  const place = data.place;
+  const high = daily.temperature_2m_max?.[0];
+  const low = daily.temperature_2m_min?.[0];
+  const sunrise = daily.sunrise?.[0];
+  const sunset = daily.sunset?.[0];
+  const rainChance = daily.precipitation_probability_max?.[0];
+
+  const card = document.createElement("article");
+  card.className = "weather-card";
+
+  addText(card, "h2", `جزئیات وضعیت آب‌وهوا در ${place.name}`, "weather-details-title");
+
+  const grid = document.createElement("div");
+  grid.className = "weather-grid";
+
+  grid.appendChild(weatherMetric("🌡️ دمای فعلی", formatNumber(Math.round(current.temperature_2m), "°C")));
+  grid.appendChild(weatherMetric("🤔 دمای احساس‌شده", formatNumber(Math.round(current.apparent_temperature), "°C")));
+  grid.appendChild(weatherMetric("💧 رطوبت نسبی", formatNumber(current.relative_humidity_2m, "%")));
+  grid.appendChild(weatherMetric("💨 سرعت باد", formatNumber(current.wind_speed_10m, " کیلومتر بر ساعت")));
+  grid.appendChild(weatherMetric("☁️ پوشش ابر", formatNumber(current.cloud_cover, "%")));
+  grid.appendChild(weatherMetric("🌧️ بارش فعلی", formatNumber(current.precipitation, " میلی‌متر")));
+  grid.appendChild(weatherMetric("🌂 احتمال بارش امروز", rainChance == null ? "اطلاعات موجود نیست" : `${rainChance}%`));
+  grid.appendChild(weatherMetric("🧭 جهت باد", formatNumber(current.wind_direction_10m, " درجه")));
+  grid.appendChild(weatherMetric("🌅 طلوع خورشید", sunrise ? sunrise.split("T").pop() : "اطلاعات موجود نیست"));
+  grid.appendChild(weatherMetric("🌇 غروب خورشید", sunset ? sunset.split("T").pop() : "اطلاعات موجود نیست"));
+  grid.appendChild(weatherMetric("🌡️ بیشینه دمای امروز", formatNumber(high, "°C")));
+  grid.appendChild(weatherMetric("🌡️ کمینه دمای امروز", formatNumber(low, "°C")));
+
+  card.appendChild(grid);
+
+  const source = document.createElement("span");
+  source.className = "weather-source";
+  source.append("منبع داده‌های هواشناسی: ");
+
+  const sourceLink = document.createElement("a");
+  sourceLink.href = "https://open-meteo.com/";
+  sourceLink.target = "_blank";
+  sourceLink.rel = "noopener noreferrer";
+  sourceLink.textContent = "Open-Meteo";
+
+  source.appendChild(sourceLink);
+  card.appendChild(source);
+  resultsBox.appendChild(card);
+}
+
+let googleCseLoadStarted = false;
+let googleCseReady = false;
+let googleCseElement = null;
+let pendingGoogleCseQuery = "";
+
+function runGoogleCseSearch(query) {
+  const cx = GOOGLE_CSE_ID.trim();
+  if (!cx || cx === "PASTE_CSE_ID_HERE") return;
+
+  pendingGoogleCseQuery = String(query || "").trim();
+  if (!pendingGoogleCseQuery) return;
+  googleCseWrap.hidden = false;
+
+  if (googleCseReady && googleCseElement) {
+    try { googleCseElement.execute(pendingGoogleCseQuery); } catch (_) {}
+    return;
+  }
+
+  if (googleCseLoadStarted) return;
+  googleCseLoadStarted = true;
+
+  window.__gcse = {
+    parsetags: "explicit",
+    initializationCallback: function () {
+      try {
+        google.search.cse.element.render({
+          div: "googleCseResults",
+          tag: "searchresults-only",
+          gname: "shiraaliGoogleCSE"
+        });
+        googleCseElement = google.search.cse.element.getElement("shiraaliGoogleCSE");
+        googleCseReady = !!googleCseElement;
+        if (googleCseReady && pendingGoogleCseQuery) {
+          googleCseElement.execute(pendingGoogleCseQuery);
+        }
+      } catch (error) {
+        googleCseResults.textContent = "بارگذاری نتایج Google انجام نشد. شناسهٔ موتور CSE و تنظیمات آن را بررسی کن.";
+      }
+    }
+  };
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = "https://cse.google.com/cse.js?cx=" + encodeURIComponent(cx);
+  script.onerror = function () {
+    googleCseResults.textContent = "اتصال به Google CSE برقرار نشد. بعداً دوباره امتحان کن.";
+  };
+  document.head.appendChild(script);
+}
+
+/* ---------- ارتباط با بک‌اندها ---------- */
+
+async function fetchWithTimeout(url, options = {}, ms = 70000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/* هر دو راه (پروکسی Render و اتصال مستقیم) هم‌زمان شروع می‌شوند؛ اولین پاسخ موفق برنده است */
+function gfetch(url) {
+  const attempts = [
+    fetchWithTimeout(BACKENDS.graphics + "?url=" + encodeURIComponent(url), {}, 70000),
+    fetchWithTimeout(url, {}, 15000)
+  ].map(p => p.then(r => { if (!r.ok) throw r; return r; }));
+
+  return Promise.any(attempts).catch(err => {
+    /* اگر هر دو ناموفق بودند، پاسخ خطادار را برگردان تا کد بتواند وضعیت (مثل 429) را بخواند */
+    const bad = (err.errors || []).find(e => e && typeof e.ok === "boolean");
+    if (bad) return bad;
+    throw err;
+  });
+}
+
+async function searchEngine(query, engine, category = null, base = BACKENDS.general) {
+  if (base === BACKENDS.general && GENERAL_ENGINE_BACKEND[engine]) base = GENERAL_ENGINE_BACKEND[engine];
+  const u = new URL(base);
+
+  u.searchParams.set("q", query);
+  u.searchParams.set("engines", engine);
+  u.searchParams.set("format", "json");
+
+  if (/[\u0600-\u06FF]/.test(query)) u.searchParams.set("language", "fa-IR");
+  if (category) u.searchParams.set("categories", category);
+
+  const res = await fetchWithTimeout(u.toString(), { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  return res.json();
+}
+
+async function collectTextGroups(query, priority, label, groups, engines = ENGINES, siteDomain = null, base = BACKENDS.general) {
+  const settled = await Promise.all(
+    engines.map(async engine => {
+      try {
+        return { engine, data: await searchEngine(query, engine, null, base) };
+      } catch (error) {
+        return { engine, error };
+      }
+    })
+  );
+
+  for (const { engine, data, error } of settled) {
+    const name = engine + label;
+
+    if (!data) {
+      currentWarnings.push({ engine: name, reason: error?.message || "پاسخ دریافت نشد" });
+      continue;
+    }
+
+    groups.push({ engine, data, priority, siteDomain });
+
+    for (const warning of data.unresponsive_engines || []) {
+      currentWarnings.push({
+        engine: name,
+        reason: Array.isArray(warning) ? warning.join(": ") : String(warning)
+      });
+    }
+  }
+}
+
+async function collectPriorityGroups(sites, base, query, groups, engines = ENGINES) {
+  await Promise.all(sites.map(site =>
+    collectTextGroups(`site:${site.domain} ${query}`, 1, ` (site:${site.domain})`, groups, engines, site.domain, base)
+  ));
+}
+
+async function collectSiteResults(sites, keywords, keywordRe, requirePersian, sequence) {
+  const parsedSites = sites.map(item => {
+    const [host, ...pathParts] = item.domain.toLowerCase().split("/");
+    return {
+      domain: item.domain,
+      label: item.label,
+      host,
+      basePath: pathParts.length ? "/" + pathParts.join("/") : ""
+    };
+  });
+
+  const jobs = [];
+
+  for (const site of parsedSites) {
+    const query = `site:${site.domain} (${keywords.join(" OR ")})`;
+
+    for (const engine of ENGINES) {
+      for (const category of [null, "news"]) {
+        jobs.push(
+          searchEngine(query, engine, category, BACKENDS.embassy)
+            .then(data => (Array.isArray(data.results) ? data.results : []).map(r => ({ r, site })))
+            .catch(() => [])
+        );
+      }
+    }
+  }
+
+  const lists = await Promise.all(jobs);
+  if (sequence !== searchSequence) return [];
+
+  const now = Date.now();
+  const maxAge = EMBASSY_MAX_AGE_DAYS * 86400000;
+  const merged = new Map();
+
+  for (const { r, site } of lists.flat()) {
+    const url = normalizedUrl(r.url);
+    if (!url) continue;
+
+    const parsed = new URL(url);
+    const urlHost = parsed.hostname;
+    if (urlHost !== site.host && !urlHost.endsWith("." + site.host)) continue;
+    if (site.basePath && !parsed.pathname.toLowerCase().startsWith(site.basePath)) continue;
+
+    const text = `${r.title || ""} ${r.content || ""}`
+      .replace(/ي/g, "ی").replace(/ك/g, "ک");
+    if (requirePersian && !/[\u0600-\u06FF]/.test(text)) continue;
+    if (!keywordRe.test(text)) continue;
+
+    let time = Date.parse(r.publishedDate || r.published_date || "");
+    if (Number.isNaN(time)) {
+      if (!EMBASSY_ALLOW_UNDATED) continue;
+      time = null;
+    } else if (now - time > maxAge) {
+      continue;
+    }
+
+    const existing = merged.get(url);
+
+    if (!existing || (existing.time == null && time != null)) {
+      merged.set(url, {
+        url,
+        title: cleanResultTitle(r),
+        content: r.content || "",
+        time,
+        embassy: true,
+        sourceLabel: site.label
+      });
+    }
+  }
+
+  return [...merged.values()]
+    .sort((a, b) => (b.time ?? -Infinity) - (a.time ?? -Infinity))
+    .slice(0, EMBASSY_MAX_RESULTS);
+}
+
+async function collectEmbassyResults(originalQuery, sequence) {
+  const site = EMBASSY_SITES[normalizePlaceName(originalQuery)];
+  if (!site) return [];
+
+  return collectSiteResults(
+    [{ domain: site, label: "سفارت" }],
+    EMBASSY_KEYWORDS, EMBASSY_KEYWORD_RE, true, sequence
+  );
+}
+
+async function collectGovResults(originalQuery, sequence) {
+  const cfg = GOV_SITES[normalizePlaceName(originalQuery)];
+  if (!cfg) return [];
+
+  const sites = [{ domain: cfg.mfa, label: "وزارت خارجه" }];
+  if (cfg.imm) sites.push({ domain: cfg.imm, label: "ایمیگریشن" });
+
+  return collectSiteResults(sites, GOV_KEYWORDS, GOV_KEYWORD_RE, false, sequence);
+}
+
+/* ---------- تازگی و ارتباط ---------- */
+
+function getPublishedTimestamp(result) {
+  const candidates = [
+    result?.publishedDate, result?.published_date, result?.publishedAt, result?.published_at,
+    result?.datePublished, result?.date_published, result?.pubdate, result?.created_at, result?.date
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined || candidate === "") continue;
+
+    let timestamp;
+    if (typeof candidate === "number" || /^\d{10,13}$/.test(String(candidate).trim())) {
+      const numeric = Number(candidate);
+      timestamp = numeric < 1e12 ? numeric * 1000 : numeric;
+    } else {
+      timestamp = Date.parse(String(candidate));
+    }
+
+    if (Number.isFinite(timestamp) && timestamp > 0 && timestamp <= Date.now() + 86400000) {
+      return timestamp;
+    }
+  }
+  return null;
+}
+
+function normalizeDigits(value) {
+  return String(value ?? "")
+    .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
+function getResultFreshness(result) {
+  const text = normalizeDigits([
+    result?.title, result?.content, result?.snippet, result?.publishedDate,
+    result?.published_date, result?.publishedAt, result?.published_at
+  ].filter(Boolean).join(" ")).toLowerCase();
+
+  if (/(لحظاتی پیش|چند لحظه پیش|همین الان|همین لحظه|just now|moments? ago|a few seconds ago|seconds ago)/i.test(text)) {
+    return { tier: 0, value: 0, timestamp: null };
+  }
+
+  let match = text.match(/(\d+)\s*(?:دقیقه|دقایق|دقیقهٔ|دقیقه‌ی)\s*(?:پیش|قبل|گذشته)?/i)
+    || text.match(/(\d+)\s*(?:minutes?|mins?)\s+ago/i);
+  if (match) return { tier: 1, value: Number(match[1]), timestamp: null };
+  if (/(چند دقیقه پیش|a few minutes ago|minutes ago)/i.test(text)) {
+    return { tier: 1, value: Number.MAX_SAFE_INTEGER, timestamp: null };
+  }
+
+  match = text.match(/(\d+)\s*(?:ساعت|ساعتِ|ساعته)\s*(?:پیش|قبل|گذشته)?/i)
+    || text.match(/(\d+)\s*(?:hours?|hrs?)\s+ago/i);
+  if (match) return { tier: 2, value: Number(match[1]), timestamp: null };
+  if (/(چند ساعت پیش|a few hours ago|hours ago)/i.test(text)) {
+    return { tier: 2, value: Number.MAX_SAFE_INTEGER, timestamp: null };
+  }
+
+  match = text.match(/(\d+)\s*(?:روز|روزه)\s*(?:پیش|قبل|گذشته)?/i)
+    || text.match(/(\d+)\s*days?\s+ago/i);
+  if (match) return { tier: 3, value: Number(match[1]), timestamp: null };
+  if (/(چند روز پیش|a few days ago|days ago)/i.test(text)) {
+    return { tier: 3, value: Number.MAX_SAFE_INTEGER, timestamp: null };
+  }
+
+  const timestamp = getPublishedTimestamp(result);
+  if (timestamp !== null) return { tier: 4, value: timestamp, timestamp };
+  return { tier: 5, value: Number.MAX_SAFE_INTEGER, timestamp: null };
+}
+
+function compareFreshness(a, b) {
+  const fa = a.freshness || { tier: 5, value: Number.MAX_SAFE_INTEGER };
+  const fb = b.freshness || { tier: 5, value: Number.MAX_SAFE_INTEGER };
+  if (fa.tier !== fb.tier) return fa.tier - fb.tier;
+  if (fa.tier >= 1 && fa.tier <= 3) return fa.value - fb.value;
+  if (fa.tier === 4) return fb.value - fa.value;
+  return 0;
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[إأٱآ]/g, "ا")
+    .replace(/[ۀة]/g, "ه")
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+const QUERY_STOP_WORDS = new Set([
+  "و", "یا", "از", "به", "در", "با", "برای", "را", "که", "این", "آن", "یک",
+  "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "what", "how"
+]);
+
+function getQueryTerms(query) {
+  const normalized = normalizeSearchText(query);
+  return [...new Set(normalized.split(" ").filter(term =>
+    term.length > 1 && !QUERY_STOP_WORDS.has(term)
+  ))];
+}
+
+const SEARCH_TERM_ALIASES = [
+  ["گوگل", "google", "جوجل"], ["google", "گوگل", "جوجل"], ["جوجل", "google", "گوگل"],
+  ["اوپن", "openai", "open ai"], ["openai", "اوپن", "اوپن ای آی"],
+  ["کامپیوتر", "computer", "computers", "حاسوب"], ["computer", "کامپیوتر", "حاسوب"],
+  ["سامسونگ", "samsung"], ["samsung", "سامسونگ"],
+  ["تهران", "tehran"], ["tehran", "تهران"], ["ایران", "iran"], ["iran", "ایران"],
+  ["شیراز", "shiraz"], ["shiraz", "شیراز"],
+  ["مصنوعی", "artificial", "ai"], ["هوش", "intelligence", "ai"]
+];
+
+function aliasesForTerm(term) {
+  const group = SEARCH_TERM_ALIASES.find(aliases => aliases.includes(term));
+  return group || [term];
+}
+
+function textHasTerm(text, term) {
+  return aliasesForTerm(term).some(alias => text.includes(normalizeSearchText(alias)));
+}
+
+function countTermOccurrences(text, term) {
+  let max = 0;
+  for (const alias of aliasesForTerm(term)) {
+    const normalizedAlias = normalizeSearchText(alias);
+    if (!normalizedAlias) continue;
+    const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const count = (text.match(new RegExp(escaped, "g")) || []).length;
+    max = Math.max(max, count);
+  }
+  return max;
+}
+
+function getRelevance(result, query) {
+  const normalizedQuery = normalizeSearchText(query);
+  const terms = getQueryTerms(query);
+  if (!terms.length) return { score: 1, matched: true };
+
+  const title = normalizeSearchText(result?.title);
+  const content = normalizeSearchText(result?.content || result?.snippet || "");
+  const host = normalizeSearchText(hostOf(result?.url || ""));
+  const titleMatches = terms.filter(term => textHasTerm(title, term)).length;
+  const contentMatches = terms.filter(term => textHasTerm(content, term)).length;
+  const ratio = (titleMatches + contentMatches) / (terms.length * 2);
+  const phraseInTitle = !!normalizedQuery && title.includes(normalizedQuery);
+  const exactTitle = !!normalizedQuery && title === normalizedQuery;
+  const exactAliasTitle = terms.length === 1 && aliasesForTerm(terms[0])
+    .some(alias => title === normalizeSearchText(alias));
+  const hostMatchesQuery = terms.length === 1 && terms.some(term => textHasTerm(host, term));
+
+  let score = titleMatches * 4 + contentMatches;
+  const isPersianQuery = /[پچژگکی]/.test(String(query || ""));
+  const resultText = `${result?.title || ""} ${result?.content || result?.snippet || ""}`;
+  const hasPersianLetters = /[پچژگکی]/.test(resultText);
+  const hasArabicScript = /[ء-ي]/.test(resultText);
+  if (isPersianQuery && hasArabicScript && !hasPersianLetters) score -= 8;
+  if (exactTitle || exactAliasTitle) score += 20;
+  else if (phraseInTitle) score += 12;
+  else if (titleMatches > 0) score += 3;
+
+  let matched;
+  if (terms.length === 1) {
+    matched = titleMatches > 0 || countTermOccurrences(content, terms[0]) >= 2;
+  } else {
+    matched = phraseInTitle || titleMatches >= Math.min(terms.length, 2) ||
+      (contentMatches >= 2 && ratio >= 0.35);
+  }
+
+  try {
+    const url = new URL(result?.url || "");
+    const isHomePage = url.pathname === "/" || url.pathname === "";
+    if (isHomePage && titleMatches === 0 && !hostMatchesQuery) matched = false;
+  } catch {}
+
+  if (isPersianQuery && hasArabicScript && !hasPersianLetters && terms.length > 1) {
+    if (titleMatches < terms.length && !phraseInTitle) matched = false;
+  }
+
+  return { score, matched };
+}
+
+function cleanResultTitle(result) {
+  const title = String(result?.title || "").trim();
+  if (!/^(?:500\s*[-–:]|failed to fetch|error\s*\d{3})/i.test(title)) return title;
+
+  try {
+    const parts = decodeURIComponent(new URL(result.url).pathname).split("/").filter(Boolean);
+    let slug = parts[parts.length - 1] || new URL(result.url).hostname;
+    slug = slug.replace(/\.(?:html?|php|aspx?)$/i, "").replace(/[-_]+/g, " ").trim();
+    if (slug) return slug.charAt(0).toLocaleUpperCase("fa-IR") + slug.slice(1);
+  } catch {}
+  return title;
+}
+
+function mergeAndRank(groups, directUrl, limit = MAX_RESULTS, useSitePriority = true, query = "") {
+  const merged = new Map();
+  let stable = 0;
+
+  for (const group of groups) {
+    if (!group.data) continue;
+
+    const list = Array.isArray(group.data.results) ? group.data.results : [];
+
+    list.forEach((r, index) => {
+      const url = normalizedUrl(r.url);
+      if (!url) return;
+
+      let item = merged.get(url);
+
+      if (!item) {
+        item = {
+          ...r,
+          url,
+          title: cleanResultTitle(r),
+          content: r.content || "",
+          score: 0,
+          publishedTimestamp: getPublishedTimestamp(r),
+          freshness: getResultFreshness(r),
+          engines: [],
+          ranks: {},
+          priority: group.priority,
+          sitePriority: priorityForUrl(url),
+          relevance: getRelevance({ ...r, title: cleanResultTitle(r) }, query),
+          isDirect: false,
+          _stable: stable++
+        };
+
+        merged.set(url, item);
+      } else {
+        item.priority = Math.max(item.priority, group.priority);
+        item.sitePriority = Math.min(item.sitePriority, priorityForUrl(url));
+      }
+
+      if (!item.engines.includes(group.engine)) item.engines.push(group.engine);
+
+      const rank = index + 1;
+      const previousRank = item.ranks[group.engine] || Infinity;
+      if (rank < previousRank) {
+        if (previousRank <= 5) {
+          item.score -= (WEIGHTS[group.engine] || [])[previousRank - 1] || 0;
+        }
+        item.ranks[group.engine] = rank;
+        if (rank <= 5) {
+          item.score += (WEIGHTS[group.engine] || [])[rank - 1] || 0;
+        }
+      }
+
+      const candidateTimestamp = getPublishedTimestamp(r);
+      const candidateFreshness = getResultFreshness(r);
+      if (compareFreshness({ freshness: candidateFreshness }, item) < 0) {
+        item.freshness = candidateFreshness;
+        item.publishedTimestamp = candidateTimestamp;
+      } else if (item.publishedTimestamp === null && candidateTimestamp !== null) {
+        item.publishedTimestamp = candidateTimestamp;
+      }
+
+      if ((!item.title || /^(?:500\s*[-–:]|failed to fetch|error\s*\d{3})/i.test(item.title)) && r.title) {
+        item.title = cleanResultTitle(r);
+      }
+
+      if (!item.content && r.content) item.content = r.content;
+
+      const candidateRelevance = getRelevance({ title: cleanResultTitle(r), content: r.content || r.snippet || "" }, query);
+      if (!item.relevance || candidateRelevance.score > item.relevance.score) {
+        item.relevance = candidateRelevance;
+      }
+    });
+  }
+
+  if (directUrl) {
+    const url = normalizedUrl(directUrl);
+
+    if (url && !merged.has(url)) {
+      merged.set(url, {
+        url, title: "", content: "", score: 0,
+        engines: ["آدرس مستقیم"], ranks: {}, priority: 3,
+        sitePriority: priorityForUrl(url), isDirect: true, _stable: -1
+      });
+    } else if (url && merged.has(url)) {
+      merged.get(url).priority = 3;
+      merged.get(url).isDirect = true;
+    }
+  }
+
+  return [...merged.values()]
+    .map(item => ({ ...item, rankingScore: item.score + (item.relevance?.score || 0) }))
+    .filter(item => item.isDirect || !query || item.relevance?.matched !== false)
+    .sort((a, b) => {
+      const directOrder = Number(b.isDirect) - Number(a.isDirect);
+      if (directOrder) return directOrder;
+
+      if (useSitePriority) {
+        const siteOrder = a.sitePriority - b.sitePriority;
+        if (siteOrder) return siteOrder;
+      }
+
+      return b.rankingScore - a.rankingScore ||
+        (b.relevance?.score || 0) - (a.relevance?.score || 0) ||
+        compareFreshness(a, b) ||
+        a._stable - b._stable;
+    })
+    .slice(0, limit);
+}
+
+
+/* ---------- نتایج هوشواره (مستقل؛ کلیدها فقط در Worker) ---------- */
+const AI_ENDPOINT = "https://shiraali-ai.shiraali-ir.workers.dev";
+const AI_ORDER = [
+  ["groq", "Groq", "gpt-oss-120b"],
+  ["openrouter", "OpenRouter", "nemotron-3-ultra"],
+  ["cohere", "Cohere", "command-a"],
+  ["workersai", "Workers AI", "gemma-4-26b"],
+  ["gemini", "Gemini", "gemini-flash-lite"],
+  ["cerebras", "Cerebras", "gpt-oss-120b"],
+  ["mistral", "Mistral", "mistral-large"],
+  ["sambanova", "SambaNova", "gemma-4-31b"],
+  ["huggingface", "Hugging Face", "gemma-3-27b"]
+];
+const aiSection = document.getElementById("aiSection");
+let aiActive = null, aiStarted = false, aiCtrl = null, aiSources = [], aiCards = {};
+const faNum = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+
+function aiHealth() {
+  if (aiActive) return Promise.resolve(aiActive);
+  return fetch(AI_ENDPOINT + "/health").then(r => r.json())
+    .then(d => (aiActive = new Set(d.providers || [])))
+    .catch(() => null);
+}
+
+function resetAI() {
+  if (aiCtrl) aiCtrl.abort();
+  aiCtrl = null; aiStarted = false; aiSources = []; aiCards = {};
+  aiSection.hidden = true;
+  aiSection.replaceChildren();
+}
+
+function aiCardOff(card, label) {
+  card.className = "ai-card off";
+  card.replaceChildren();
+  const head = document.createElement("div"); head.className = "ai-head";
+  head.textContent = card.dataset.name;
+  addText(head, "span", label || "فعلاً در دسترس نیست", "ai-model");
+  card.appendChild(head);
+}
+
+function aiCardLoading(card) {
+  card.className = "ai-card loading";
+  card.replaceChildren();
+  const head = document.createElement("div"); head.className = "ai-head";
+  head.textContent = card.dataset.name;
+  addText(head, "span", "در حال آماده‌شدن…", "ai-model");
+  card.appendChild(head);
+  addText(card, "div", "", "ai-skel");
+  addText(card, "div", "", "ai-skel short");
+}
+
+function aiCardFill(card, res) {
+  card.className = "ai-card";
+  card.replaceChildren();
+  const text = String(res.text).replace(/\s*\[\d{1,2}\]/g, "").replace(/\s+([.،؛!؟])/g, "$1").trim();
+  addText(card, "p", text, "ai-text");
+  addText(card, "span", "منبع: " + card.dataset.name, "result-engine");
+}
+
+async function startAI(seq, q) {
+  if (aiStarted || seq !== searchSequence) return;
+  const seen = new Set();
+  const list = [...prioritySiteResults, ...preparedResults].filter(r => {
+    const k = r && r.url && normalizedUrl(r.url);
+    if (!k || seen.has(k)) return false;
+    seen.add(k); return true;
+  }).slice(0, 8);
+  if (!list.length) return;
+  aiStarted = true;
+  aiSources = list.map(r => ({ title: cleanResultTitle(r) || r.title || "", url: r.url, snippet: r.content || "" }));
+  const ctrl = aiCtrl = new AbortController();
+  const active = await aiHealth();
+  if (seq !== searchSequence || ctrl.signal.aborted) return;
+
+  aiSection.replaceChildren();
+  addText(aiSection, "h2", "نتایج هوشواره", "results-section-title");
+  AI_ORDER.forEach(([id, name, model]) => {
+    const card = document.createElement("div");
+    card.dataset.name = name; card.dataset.model = model;
+    card.hidden = true;
+    if (!active || active.has(id)) aiCards[id] = card;
+    aiSection.appendChild(card);
+  });
+  aiSection.hidden = true;
+  renderVisible();
+
+  const done = new Set();
+  try {
+    const r = await fetch(AI_ENDPOINT + "/ai", {
+      method: "POST", signal: ctrl.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q, results: aiSources })
+    });
+    if (!r.ok || !r.body) throw new Error("ai " + r.status);
+    const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (end) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line || seq !== searchSequence) continue;
+        let res; try { res = JSON.parse(line); } catch { continue; }
+        const card = aiCards[res.provider]; if (!card) continue;
+        done.add(res.provider);
+        if (res.ok && res.text && !(/پاسخ روشنی.{0,20}پیدا نشد/.test(res.text) && res.text.length < 120)) { aiCardFill(card, res); card.hidden = false; aiSection.hidden = false; }
+      }
+    }
+  } catch (e) {
+    if (ctrl.signal.aborted) return;
+    console.warn("هوشواره:", e);
+  }
+  if (seq !== searchSequence) return;
+  if (!Object.values(aiCards).some(c => !c.hidden)) aiSection.hidden = true;
+}
+
+let secondaryDone = true;
+
+/* سه بخش ویژه، سوشال و جنرال کاملاً مستقل‌اند؛ هر کدام با رسیدن جواب خودش نمایش می‌دهد */
+async function runTextSearch(seq, domain, q, directUrl) {
+  const generalGroups = [];
+  const priorityGroups = [];
+  const alive = () => seq === searchSequence;
+
+  runGoogleCseSearch(domain ? `site:${domain} ${q}` : q);
+  secondaryDone = false;
+
+  const rebuildPriority = () => {
+    prioritySiteResults = mergeAndRank(priorityGroups, null, INITIAL_LIMIT, true, q);
+  };
+
+  const rebuildGeneral = () => {
+    preparedResults = mergeAndRank(generalGroups, directUrl, Number.MAX_SAFE_INTEGER, false, q)
+      .filter(item => item.isDirect || priorityForUrl(item.url) > PRIORITY_SITES.length)
+      .slice(0, MAX_RESULTS);
+    visibleCount = Math.min(Math.max(visibleCount, INITIAL_LIMIT), preparedResults.length);
+  };
+
+  let aiTimer = null;
+  const kickAI = () => {
+    if (aiStarted || !alive()) return;
+    const n = prioritySiteResults.length + preparedResults.length;
+    if (n >= 5) { clearTimeout(aiTimer); startAI(seq, q); }
+    else if (n && !aiTimer) aiTimer = setTimeout(() => startAI(seq, q), 3500);
+  };
+
+  const sitesTask = async (sites, base) => {
+    await collectPriorityGroups(sites, base, q, priorityGroups);
+    if (!alive()) return;
+    rebuildPriority();
+    renderVisible();
+    kickAI();
+  };
+
+  const generalStage = async engines => {
+    if (domain) {
+      await collectTextGroups(`site:${domain} ${q}`.trim(), 2, " (جست‌وجوی سایت)",
+        generalGroups, engines, domain, BACKENDS.general);
+    }
+    await collectTextGroups(q, 1, "", generalGroups, engines, null, BACKENDS.general);
+    if (!alive()) return false;
+    rebuildGeneral();
+    return true;
+  };
+
+  const generalTask = async () => {
+    try {
+      if (!(await generalStage(ENGINES))) return;
+      renderVisible();
+      kickAI();
+      if (!(await generalStage(SECONDARY_ENGINES))) return;
+    } finally {
+      if (alive()) { secondaryDone = true; renderVisible(); }
+    }
+  };
+
+  await Promise.all([
+    sitesTask(SPECIAL_SITES, BACKENDS.special).catch(e => console.warn("special failed:", e)),
+    sitesTask(SOCIAL_SITES,  BACKENDS.social ).catch(e => console.warn("social failed:", e)),
+    generalTask().catch(e => console.warn("general failed:", e))
+  ]);
+  if (alive()) { clearTimeout(aiTimer); startAI(seq, q); }
+}
+
+function renderOneResult(r) {
+  const card = document.createElement("article");
+  card.className = "result";
+
+  const siteIcon = createSiteIcon(r.url);
+  if (siteIcon) card.appendChild(siteIcon);
+
+  const heading = document.createElement("h2");
+  const link = document.createElement("a");
+
+  link.href = r.url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = (typeof r.title === "string" ? r.title.trim() : "") || r.url;
+
+  heading.appendChild(link);
+  card.appendChild(heading);
+
+  if (r.content) addText(card, "p", r.content);
+
+  addText(
+    card,
+    "span",
+    r.embassy
+      ? `${r.sourceLabel || "سفارت"} | ${r.time != null
+          ? "تاریخ انتشار: " + new Date(r.time).toLocaleDateString("fa-IR")
+          : "تاریخ نامشخص"}`
+      : `امتیاز: ${r.rankingScore ?? r.score} | منابع: ${r.engines.join(", ")}`,
+    "result-engine"
+  );
+
+  resultsBox.appendChild(card);
+}
+
+function renderVisible() {
+  resultsBox.replaceChildren();
+
+  if (weatherData) renderWeatherCards(weatherData);
+  if (wikiInfobox) renderInfoboxCard(wikiInfobox);
+  if (aiStarted) resultsBox.appendChild(aiSection);
+
+  if (wikiCard || prioritySiteResults.length) {
+    addText(resultsBox, "h2", "نتایج سایت‌های اولویت‌دار", "results-section-title");
+    if (wikiCard) renderWikiCard(wikiCard);
+
+    const wikiUrl = wikiCard ? normalizedUrl(wikiCard.url) : null;
+    prioritySiteResults
+      .filter(r => !wikiUrl || normalizedUrl(r.url) !== wikiUrl)
+      .slice(0, wikiCard ? 10 : 11)
+      .forEach(renderOneResult);
+  }
+
+  if (preparedResults.length) {
+    addText(resultsBox, "h2", "نتایج جست‌وجوی عمومی", "results-section-title");
+    preparedResults.slice(0, visibleCount).forEach(renderOneResult);
+  }
+
+  embassyResults.forEach(renderOneResult);
+
+  if (currentWarnings.length) {
+    const messages = currentWarnings.map(item => `${item.engine}: ${item.reason}`);
+    addText(resultsBox, "div", "برخی جست‌وجوها پاسخ نداده‌اند: " + messages.join("؛ "), "warning");
+  }
+
+  const more = visibleCount < preparedResults.length && visibleCount < MAX_RESULTS;
+  const waiting = !secondaryDone && visibleCount >= preparedResults.length && preparedResults.length > 0;
+
+  showMoreButton.hidden = !(more || waiting);
+  showMoreButton.disabled = waiting;
+  showMoreButton.textContent = waiting ? "در حال دریافت نتایج بیشتر..." : "نمایش نتایج بیشتر";
+
+  /* اولین نتیجه رسید: پیام «بیدار شدن سرور» پاک و دکمه آزاد می‌شود */
+  if (resultsBox.children.length) {
+    clearTimeout(slowTimer);
+    submitButton.disabled = false;
+    if (/بیدار/.test(statusBox.textContent)) statusBox.textContent = "";
+  }
+}
+
+showMoreButton.addEventListener("click", () => {
+  visibleCount = Math.min(visibleCount + 11, MAX_RESULTS, preparedResults.length);
+  renderVisible();
+  statusBox.textContent = "";
+});
+
+/* ---------- اجرای جست‌وجو ---------- */
+
+searchForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const originalQuery = queryInput.value.trim();
+  if (!originalQuery) return;
+
+  const thisSearch = ++searchSequence;
+  hasSearched = true;
+  queryInput.blur();
+  const target = detectTarget(originalQuery);
+
+  const cls = classifyQuery(originalQuery);
+  const searchQuery = cls.query || target.query;
+  const operator = detectOperator(originalQuery);
+  const skipPlace = ["animal", "plain", "milk"].includes(cls.kind) || !!operator;
+  const placeLevel = (cls.kind === "produce" || cls.kind === "food")
+    ? (cls.single ? "top" : "strict") : "any";
+  const domain = target.domain;
+
+  submitButton.disabled = true;
+  showMoreButton.hidden = true;
+  resultsBox.replaceChildren();
+  resetAI();
+  googleCseWrap.hidden = true;
+  googleCseResults.replaceChildren();
+
+  preparedResults = [];
+  prioritySiteResults = [];
+  embassyResults = [];
+  visibleCount = 0;
+  currentWarnings = [];
+  weatherData = null;
+  wikiCard = null;
+  wikiInfobox = null;
+
+  resetGallery();
+  resetWeatherImage();
+  resetClock();
+  resetNutrition();
+  resetMath();
+  resetColor();
+  resetTranslation();
+  resetLex();
+  resetOperator();
+  hideCorrection();
+
+  const colorHex = detectColor(originalQuery);
+
+  if (colorHex) {
+    statusBox.textContent = "";
+    renderColor(colorHex);
+    submitButton.disabled = false;
+    return;
+  }
+
+  const mathAnswer = evaluateMath(originalQuery);
+
+  if (mathAnswer !== null) {
+    statusBox.textContent = "";
+    renderMath(mathAnswer);
+    submitButton.disabled = false;
+    return;
+  }
+
+  const translationRequest = parseTranslationRequest(originalQuery);
+
+  if (translationRequest) {
+    try {
+      const translated = await fetchTranslation(translationRequest, thisSearch);
+
+      if (thisSearch !== searchSequence) return;
+
+      if (translated) {
+        statusBox.textContent = "";
+        renderTranslation(translated);
+        submitButton.disabled = false;
+        return;
+      }
+    } catch (error) {
+      console.warn("Translation failed:", error);
+    }
+
+    if (thisSearch !== searchSequence) return;
+  }
+
+  const equivRequest = parseEquivalentRequest(originalQuery);
+
+  if (equivRequest) {
+    statusBox.textContent = "در حال جست‌وجو در لغتنامه...";
+
+    try {
+      await renderEquivalent(equivRequest.text, thisSearch);
+    } catch (error) {
+      console.warn("Equivalent lookup failed:", error);
+    }
+
+    if (thisSearch !== searchSequence) return;
+
+    statusBox.textContent = "";
+    submitButton.disabled = false;
+    return;
+  }
+
+  if (!domain && !target.directUrl && !operator) {
+    computeCorrection(originalQuery, thisSearch).catch(error =>
+      console.warn("Correction failed:", error));
+  }
+
+  clearTimeout(slowTimer);
+  slowTimer = setTimeout(() => {
+    if (thisSearch === searchSequence && !resultsBox.children.length &&
+        !wikiImageWrap.classList.contains("visible")) {
+      statusBox.textContent = "سرور در حال بیدار شدن است، تا یک دقیقه ممکن است طول بکشد...";
+    }
+  }, 5000);
+
+  const plain = !domain && !target.directUrl;
+  const alive = () => thisSearch === searchSequence;
+  if (operator) renderOperator(operator);
+
+  let wikiImageResult = null;
+  let engineImages = null;
+
+  const refreshGallery = () => {
+    if (!alive()) return;
+    const list = [];
+    if (wikiImageResult?.src) list.push(wikiImageResult);
+    (engineImages || []).forEach(img => {
+      if (!list.some(i => i.src === img.src)) list.push(img);
+    });
+    if (list.length) renderGallery(list);
+  };
+
+  const task = (name, fn) => fn().catch(e => console.warn(name + " failed:", e));
+
+  try {
+    await Promise.all([
+
+      /* ویژه + سوشال + جنرال */
+      task("text", () => runTextSearch(thisSearch, domain, searchQuery, target.directUrl)),
+
+      /* تصاویر موتورها */
+      task("images", async () => {
+        const imgs = await collectImageResults(searchQuery, thisSearch, null);
+        if (!alive() || !imgs) return;
+        engineImages = imgs;
+        galleryReady = true;
+        refreshGallery();
+      }),
+
+      /* عکس ویکی‌پدیا */
+      task("wikiImage", async () => {
+        const img = await loadWikipediaImage(searchQuery, thisSearch);
+        if (!alive() || !img) return;
+        wikiImageResult = img;
+        refreshGallery();
+      }),
+
+      /* خلاصهٔ ویکی‌پدیا */
+      task("wikiText", async () => {
+        if (!plain) return;
+        const card = await loadWikipediaSummary(searchQuery, thisSearch);
+        if (!alive() || !card) return;
+        wikiCard = card;
+        renderVisible();
+      }),
+
+      /* Infobox */
+      task("infobox", async () => {
+        if (!plain) return;
+        const info = await loadWikiInfobox(searchQuery, thisSearch);
+        if (!alive() || !info) return;
+        wikiInfobox = info;
+        renderVisible();
+      }),
+
+      /* مکان ← ساعت ← هواشناسی، یا ارزش غذایی */
+      task("place", async () => {
+        let weatherPlace = null;
+
+        if (plain && !skipPlace && shouldShowWeatherForQuery(originalQuery)) {
+          weatherPlace = await findWeatherPlace(originalQuery, placeLevel);
+          if (!alive()) return;
+
+          if (weatherPlace) {
+            renderClock(weatherPlace, null).catch(() => resetClock());
+
+            try {
+              const data = await fetchWeather(weatherPlace);
+              if (!alive()) return;
+              weatherData = data;
+              renderWeatherImage(data);
+              renderVisible();
+            } catch (error) {
+              console.warn("Weather request failed:", error);
+            }
+          }
+        }
+
+        if (!weatherPlace && plain && !operator &&
+            ["food", "produce", "milk"].includes(cls.kind)) {
+          try {
+            const nutrition = await loadNutrition(cls.en || originalQuery, thisSearch);
+            if (!alive()) return;
+            if (nutrition) renderNutrition(nutrition, originalQuery);
+          } catch (error) {
+            console.warn("Nutrition lookup failed:", error);
+            currentWarnings.push({ engine: "ارزش غذایی", reason: error?.message || "پاسخ دریافت نشد" });
+            resetNutrition();
+            renderVisible();
+          }
+        }
+      }),
+
+      /* سفارت، وزارت خارجه، ایمیگریشن (بک‌اند embassy) */
+      task("embassy", async () => {
+        if (!plain) return;
+        const [embassyList, govList] = await Promise.all([
+          collectEmbassyResults(originalQuery, thisSearch),
+          collectGovResults(originalQuery, thisSearch)
+        ]);
+        if (!alive()) return;
+        embassyResults = [...embassyList, ...govList];
+        if (embassyResults.length) renderVisible();
+      })
+    ]);
+
+    if (!alive()) return;
+
+    galleryReady = true;
+    if (galleryImages.length) showGalleryImage();
+
+    if (preparedResults.length || prioritySiteResults.length) {
+      statusBox.textContent = "";
+    } else if (weatherData) {
+      statusBox.textContent = "اطلاعات هواشناسی نمایش داده شد؛ نتیجهٔ متنی دیگری پیدا نشد.";
+    } else if (currentWarnings.length) {
+      statusBox.textContent = "موتورهای جست‌وجو پاسخ ندادند. چند لحظه صبر کن و دوباره امتحان کن.";
+    } else {
+      statusBox.textContent = "نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.";
+    }
+  } catch (error) {
+    console.error("Shiraali Search error:", error);
+    if (alive()) {
+      statusBox.textContent = "دریافت نتایج ناموفق بود. چند لحظه صبر کن و دوباره امتحان کن.";
+      renderVisible();
+    }
+  } finally {
+    clearTimeout(slowTimer);
+    if (alive()) submitButton.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
