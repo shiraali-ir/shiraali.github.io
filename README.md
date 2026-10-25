@@ -1,1 +1,0 @@
-# shiraali.github.io
