@@ -1,0 +1,47 @@
+---
+layout: null
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#dff2ff">
+<meta http-equiv="refresh" content="20">
+<title>Shiraali</title>
+<style>
+:root{color-scheme:light;--bg:#dff2ff;--text:#173650;--input:#fff;--muted:#526b80;--shadow:0 6px 22px rgba(23,54,80,.16)}
+body.dark{color-scheme:dark;--bg:#0b3157;--text:#f4f9ff;--input:#102f4c;--muted:#c0d5e7;--shadow:0 6px 22px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;transition:background .2s,color .2s}
+.theme-icon{width:25px;height:25px;display:block;flex:none}
+.theme{position:absolute;z-index:9999;top:8px;left:8px;width:42px;height:42px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer;appearance:none;-webkit-appearance:none}
+main{width:60%;margin:0 auto;padding:clamp(75px,12vh,120px) 0 45px;text-align:center}
+.logo{display:block;width:150px;height:150px;max-width:42vw;max-height:42vw;object-fit:contain;margin:0 auto 28px}
+.search-box{display:flex;align-items:center;min-height:56px;padding:5px 15px;border-radius:30px;background:var(--input);box-shadow:var(--shadow)}
+.updating{flex:1;line-height:42px;color:var(--muted);font-size:16px;text-align:center}
+@media (max-width:700px){main{width:92%}}
+@media (max-width:480px){main{padding-top:100px}.logo{margin-bottom:24px}.search-box{min-height:52px}}
+</style>
+</head>
+<body>
+<button class="theme" id="theme" type="button" aria-label="تغییر حالت روشن و تاریک">
+  <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/></svg>
+</button>
+<main>
+  <img class="logo" src="https://shiraali.ir/logo.png" alt="شیر با دست روی کره زمین">
+  <div class="search-box"><div class="updating">در حال بروزرسانی...</div></div>
+</main>
+<script>
+var b=document.getElementById("theme");
+b.addEventListener("click",function(){
+  document.body.classList.toggle("dark");
+  var d=document.body.classList.contains("dark");
+  b.innerHTML=d
+   ?'<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#fff"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.2M12 19.8V22"/><path d="M4.93 4.93l1.55 1.55M17.52 17.52l1.55 1.55"/><path d="M2 12h2.2M19.8 12H22"/><path d="M4.93 19.07l1.55-1.55M17.52 6.48l1.55-1.55"/></g></svg>'
+   :'<svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"/></svg>';
+  document.querySelector('meta[name="theme-color"]').setAttribute("content",d?"#0b3157":"#dff2ff");
+});
+</script>
+</body>
+</html>
